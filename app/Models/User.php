@@ -38,4 +38,9 @@ class User extends Authenticatable
             'must_change_password' => 'boolean',
         ];
     }
+
+    public function getRouteKeyName()
+    {
+        return 'id_user';
+    }
 }
