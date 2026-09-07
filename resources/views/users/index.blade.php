@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-    {{-- @if (session('success'))
+    @if (session('success'))
     <script>
         alertify.success(@json(session('success')));
     </script>
@@ -15,7 +15,7 @@
         <script>
             alertify.error(@json(session('error')));
         </script>
-    @endif --}}
+    @endif
 
     <div class="main-content">
         <div class="page-content">

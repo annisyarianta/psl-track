@@ -6,6 +6,14 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\KpiController;
+use App\Http\Controllers\SasaranProgramController;
+use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\IndikatorProgramController;
+use App\Http\Controllers\PicIndikatorController;
+use App\Http\Controllers\PeriodeTwController;
+use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\FilePelaporanController;
 
 
 
@@ -45,8 +53,8 @@ Route::post('/logout', [
     AuthController::class,
     'logout'
 ])
-->middleware('auth')
-->name('logout');
+    ->middleware('auth')
+    ->name('logout');
 
 
 Route::middleware('auth')->group(function () {
@@ -72,14 +80,22 @@ Route::middleware([
             'show'
         ]);
 
+    Route::resource('kpi', KpiController::class);
+    Route::resource('sasaran-program', SasaranProgramController::class);
+    Route::resource('program', ProgramController::class);
+    Route::resource('indikator-program', IndikatorProgramController::class);
+    Route::resource('pic-indikator', PicIndikatorController::class);
+    Route::resource('periode-tw', PeriodeTwController::class);
+    Route::resource('monitoring', MonitoringController::class);
+    Route::resource('file-pelaporan', FilePelaporanController::class);
 });
 
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 })
-->middleware([
-    'auth',
-    'force.password.change'
-])
-->name('dashboard');
+    ->middleware([
+        'auth',
+        'force.password.change'
+    ])
+    ->name('dashboard');

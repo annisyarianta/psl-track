@@ -110,7 +110,7 @@
                         </li>
 
                         <li>
-                            <a href="#">
+                            <a href="{{ route('kpi.index') }}">
                                 <i class='bx bx-bulb'></i>
                                 <span>KPI Tracker</span>
                             </a>
