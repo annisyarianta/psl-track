@@ -7,6 +7,7 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\KpiController;
+use App\Http\Controllers\KpiStructureController;
 use App\Http\Controllers\SasaranProgramController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\IndikatorProgramController;
@@ -15,7 +16,9 @@ use App\Http\Controllers\PeriodeTwController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\FilePelaporanController;
 
-
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [
@@ -74,13 +77,10 @@ Route::middleware([
     'auth',
     'force.password.change'
 ])->group(function () {
-
-    Route::resource('users', UserController::class)
-        ->except([
-            'show'
-        ]);
-
+    Route::resource('users', UserController::class)->except(['show']);
     Route::resource('kpi', KpiController::class);
+    Route::get('/kpi/{id_kpi}/struktur', [KpiStructureController::class, 'create'])->name('kpi.struktur.create');
+    Route::post('/kpi/{id_kpi}/struktur', [KpiStructureController::class, 'store'])->name('kpi.struktur.store');
     Route::resource('sasaran-program', SasaranProgramController::class);
     Route::resource('program', ProgramController::class);
     Route::resource('indikator-program', IndikatorProgramController::class);

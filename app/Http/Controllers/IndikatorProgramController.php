@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class IndikatorProgramController extends Controller
 {
     // TODO enum: sesuaikan pilihan aspek
-    private array $aspekOptions = ['Input', 'Proses', 'Output', 'Outcome'];
+    private array $aspekOptions = ['Kualitas', 'Kuantitas'];
 
     public function index()
     {

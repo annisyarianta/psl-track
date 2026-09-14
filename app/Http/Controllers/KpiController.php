@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kpi;
+use App\Models\SasaranProgram;
+use App\Models\Program;
+use App\Models\IndikatorProgram;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class KpiController extends Controller
 {
@@ -11,6 +15,15 @@ class KpiController extends Controller
     {
         $kpis = Kpi::orderByDesc('tahun')->paginate(10);
         return view('kpi.index', compact('kpis'));
+    }
+
+    public function show($id_kpi)
+    {
+        $kpi = Kpi::with([
+            'sasaranProgram.program.indikatorProgram'
+        ])->findOrFail($id_kpi);
+
+        return view('kpi.show', compact('kpi'));
     }
 
     public function create()
