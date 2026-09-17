@@ -6,6 +6,8 @@ use App\Models\Kpi;
 use App\Models\SasaranProgram;
 use App\Models\Program;
 use App\Models\IndikatorProgram;
+use App\Models\User;
+use App\Models\PicIndikator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,15 +26,14 @@ class KpiStructureController extends Controller
      */
     public function create($id_kpi)
     {
-        // Ambil KPI berdasarkan ID yang terdapat pada URL.
         $kpi = Kpi::findOrFail($id_kpi);
-
-        // Pilihan aspek untuk form indikator.
+        $users = User::all();
         $aspekOptions = $this->aspekOptions;
 
         return view('kpi.struktur', compact(
             'kpi',
-            'aspekOptions'
+            'aspekOptions',
+            'users'
         ));
     }
 
@@ -41,10 +42,8 @@ class KpiStructureController extends Controller
      */
     public function store(Request $request, $id_kpi)
     {
-        // Pastikan KPI yang dipilih benar-benar ada.
         $kpi = Kpi::findOrFail($id_kpi);
 
-        // Validasi seluruh input wizard.
         $validated = $request->validate([
             // =========================
             // SASARAN
@@ -96,6 +95,8 @@ class KpiStructureController extends Controller
                 'max:255',
             ],
 
+            'id_user' => 'required|exists:users,id_user',
+
             'due_date' => [
                 'nullable',
                 'date',
@@ -129,7 +130,7 @@ class KpiStructureController extends Controller
                 // 3. SIMPAN INDIKATOR
                 // ========================================
 
-                IndikatorProgram::create([
+                $indikator = IndikatorProgram::create([
                     'id_program' => $program->id_program,
                     'nama_indikator' => $validated['nama_indikator'],
                     'target' => $validated['target'] ?? null,
@@ -137,6 +138,11 @@ class KpiStructureController extends Controller
                     'periode_pengukuran' => $validated['periode_pengukuran'] ?? null,
                     'upaya' => $validated['upaya'] ?? null,
                     'due_date' => $validated['due_date'] ?? null,
+                ]);
+
+                PicIndikator::create([
+                    'id_indikator' => $indikator->id_indikator,
+                    'id_user' => $validated['id_user'],
                 ]);
             });
 
@@ -147,7 +153,6 @@ class KpiStructureController extends Controller
                     'success',
                     'Sasaran, Program, dan Indikator berhasil ditambahkan.'
                 );
-
         } catch (\Throwable $e) {
 
             // Jika terjadi error, kembali ke form.

@@ -16,6 +16,8 @@
     <!-- alertifyjs default themes  Css -->
     <link href="{{ asset('assets/libs/alertifyjs/build/css/themes/default.min.css') }}" rel="stylesheet"
         type="text/css" />
+    <!-- twitter-bootstrap-wizard css -->
+    <link rel="stylesheet" href="{{ asset('assets/libs/twitter-bootstrap-wizard/prettify.css') }}">
     <!-- DataTables -->
     <link href="{{ asset('assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}" rel="stylesheet"
         type="text/css" />
@@ -260,8 +262,14 @@
     <!-- Buttons examples -->
     <script src="{{ asset('assets/libs/datatables.net-buttons/js/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
+    <!-- SweetAlert -->
     <script src="{{ asset('assets/libs/sweetalert2/sweetalert2.min.js') }}"></script>
-    
+    <!-- twitter-bootstrap-wizard js -->
+    <script src="{{ asset('assets/libs/twitter-bootstrap-wizard/jquery.bootstrap.wizard.min.js') }}"></script>
+    <script src="{{ asset('assets/libs/twitter-bootstrap-wizard/prettify.js') }}"></script>
+    <!-- form wizard init -->
+    <script src="{{ asset('assets/js/pages/form-wizard.init.js') }}"></script>
+
     @if (session('success'))
         <script>
             alertify.success(@json(session('success')));
