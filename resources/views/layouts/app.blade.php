@@ -11,6 +11,8 @@
     <link href="{{ asset('assets/libs/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.css') }}" rel="stylesheet"
         type="text/css" />
     <link href="{{ asset('assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
+    <!-- choices css -->
+    <link href="{{ asset('assets/libs/choices.js/public/assets/styles/choices.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- alertifyjs Css -->
     <link href="{{ asset('assets/libs/alertifyjs/build/css/alertify.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- alertifyjs default themes  Css -->
@@ -262,6 +264,8 @@
     <!-- Buttons examples -->
     <script src="{{ asset('assets/libs/datatables.net-buttons/js/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
+    <!-- choices js -->
+    <script src="{{ asset('assets/libs/choices.js/public/assets/scripts/choices.min.js') }}"></script>
     <!-- SweetAlert -->
     <script src="{{ asset('assets/libs/sweetalert2/sweetalert2.min.js') }}"></script>
     <!-- twitter-bootstrap-wizard js -->

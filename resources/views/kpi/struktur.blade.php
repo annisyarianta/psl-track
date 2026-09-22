@@ -119,7 +119,7 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title mb-0">KPI {{ $kpi->tahun }}</h4>
+                                <h4 class="card-title mb-1">KPI {{ $kpi->tahun }}</h4>
                                 <p class="text-muted mb-0">
                                     {{ $kpi->judul_kpi }}
                                 </p>
@@ -253,7 +253,6 @@
                                                     <div class="col-lg-12">
                                                         <div class="mb-3">
                                                             <label for="target" class="form-label">Target
-                                                                <span class="text-danger">*</span>
                                                             </label>
                                                             <input type="text"
                                                                 class="form-control @error('target') is-invalid @enderror"

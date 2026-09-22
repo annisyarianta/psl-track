@@ -100,7 +100,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="row mb-3">
+                                    <div class="row mb-4">
                                         <label for="role-input" class="col-sm-2 col-form-label">Role <span
                                                 class="text-danger">*</span></label>
                                         <div class="col-sm-10">

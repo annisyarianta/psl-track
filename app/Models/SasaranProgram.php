@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SasaranProgram extends Model
 {
-    protected $table = 'sasaran_program';
+    protected $table = 'sasaran_program'; 
     protected $primaryKey = 'id_sasaran';
     public $timestamps = false;
     protected $fillable = ['id_kpi', 'nama_sasaran'];

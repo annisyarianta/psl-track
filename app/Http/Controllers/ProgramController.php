@@ -29,7 +29,7 @@ class ProgramController extends Controller
 
         Program::create($validated);
 
-        return redirect()->route('program.index')->with('success', 'Program berhasil ditambahkan.');
+        return redirect()->route('kpi.show')->with('success', 'Program berhasil ditambahkan.');
     }
 
     public function edit(Program $program)
@@ -47,7 +47,7 @@ class ProgramController extends Controller
 
         $program->update($validated);
 
-        return redirect()->route('program.index')->with('success', 'Program berhasil diperbarui.');
+        return redirect()->route('kpi.show', $program->id_sasaran)->with('success', 'Program berhasil diperbarui.');
     }
 
     public function destroy(Program $program)

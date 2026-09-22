@@ -50,7 +50,7 @@
                                 <i class="bx bx-plus label-icon"></i>Tambah KPI
                             </button>
                         </div>
-                        {{-- modal tambah data --}}
+                        {{-- modal tambah KPI --}}
                         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
                             tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered" role="document">
@@ -66,14 +66,14 @@
                                         @csrf
                                         <div class="modal-body">
                                             <div class="row mb-4">
-                                                <label for="tahun" class="col-sm-3 col-form-label">Tahun</label>
+                                                <label for="tahun" class="col-sm-3 col-form-label">Tahun <span class="text-danger">*</span></label>
                                                 <div class="col-sm-9">
                                                     <input type="number" class="form-control" id="tahun" name="tahun"
                                                         value="{{ old('tahun') }}" required />
                                                 </div>
                                             </div>
                                             <div class="row mb-2">
-                                                <label for="judul_kpi" class="col-sm-3 col-form-label">Judul KPI</label>
+                                                <label for="judul_kpi" class="col-sm-3 col-form-label">Judul KPI <span class="text-danger">*</span></label>
                                                 <div class="col-sm-9">
                                                     <input type="text" class="form-control" id="judul_kpi" name="judul_kpi"
                                                         value="{{ old('judul_kpi') }}" required />
@@ -84,7 +84,7 @@
                                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">
                                                 Batal
                                             </button>
-                                            <button type="submit" class="btn btn-primary" data-bs-dismiss="modal"
+                                            <button type="submit" class="btn btn-primary"
                                                 id="alert-success">
                                                 Simpan
                                             </button>

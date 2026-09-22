@@ -6,9 +6,9 @@
 
 @section('content')
     @if (session('success'))
-    <script>
-        alertify.success(@json(session('success')));
-    </script>
+        <script>
+            alertify.success(@json(session('success')));
+        </script>
     @endif
 
     @if (session('error'))
@@ -54,25 +54,29 @@
                                 <table id="datatable" class="table table-bordered dt-responsive w-100 table-hover">
                                     <thead>
                                         <tr>
-                                            <th class="text-center" style="width: 50px">No. Pegawai</th>
-                                            <th class="text-center" style="width: 150px">Nama</th>
-                                            <th class="text-center" style="width: 80px">Email</th>
+                                            <th class="text-center" style="width: 30px">No. Pegawai</th>
+                                            <th class="text-center" style="width: 160px">Nama</th>
+                                            <th class="text-center" style="width: 50px">Email</th>
                                             <th class="text-center" style="width: 80px">Unit</th>
-                                            <th class="text-center" style="width: 50px">Role</th>
-                                            <th class="text-center" style="width: 70px">Aksi</th>
+                                            <th class="text-center" style="width: 40px">Role</th>
+                                            <th class="text-center" style="width: 50px">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @forelse($users as $user)
-                                            <tr>
+                                            <tr class="align-middle">
                                                 <td class="text-center">{{ $user->nopeg }}</td>
-                                                <td class="text-center">{{ $user->nama }}</td>
+                                                <td>{{ $user->nama }}</td>
                                                 <td class="text-center"> {{ $user->email }}</td>
                                                 <td class="text-center">{{ $user->unit ?? '-' }}</td>
                                                 <td class="text-center">
                                                     @if ($user->role === 'manager')
-                                                        <span class="badge bg-primary">
+                                                        <span class="badge bg-success">
                                                             Manager
+                                                        </span>
+                                                    @elseif ($user->role === 'asmen')
+                                                        <span class="badge bg-primary">
+                                                            Asmen
                                                         </span>
                                                     @else
                                                         <span class="badge bg-secondary">
@@ -80,27 +84,26 @@
                                                         </span>
                                                     @endif
                                                 </td>
-                                                <td class="text-center">
-                                                    <a href="{{ route('users.edit', $user->id_user) }}"
-                                                        class="btn btn-outline-warning btn-sm edit mb-3" title="Edit">
-                                                        <i class="fas fa-pencil-alt"></i>
-                                                    </a>
-                                                    @if (auth()->id() !== $user->id_user)
-                                                        <form action="{{ route('users.destroy', $user->id_user) }}"
-                                                            method="POST" class="form-delete-user"
-                                                            style="display: inline-block;">
-
-                                                            @csrf
-                                                            @method('DELETE')
-
-                                                            <button type="submit"
-                                                                class="btn btn-outline-danger btn-sm ms-2 mb-3"
-                                                                title="Delete">
-                                                                <i class="fas fa-trash-alt"></i>
-                                                            </button>
-
-                                                        </form>
-                                                    @endif
+                                                <td>
+                                                    <div class="d-flex justify-content-center align-items-center">
+                                                        <a href="{{ route('users.edit', $user->id_user) }}"
+                                                            class="btn btn-outline-warning btn-sm edit mb-3" title="Edit">
+                                                            <i class="fas fa-pencil-alt"></i>
+                                                        </a>
+                                                        @if (auth()->id() !== $user->id_user)
+                                                            <form action="{{ route('users.destroy', $user->id_user) }}"
+                                                                method="POST" class="form-delete-user"
+                                                                style="display: inline-block;">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="btn btn-outline-danger btn-sm ms-2 mb-3"
+                                                                    title="Delete">
+                                                                    <i class="fas fa-trash-alt"></i>
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @empty

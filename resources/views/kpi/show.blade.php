@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Detail KPI | PSL Track
+    KPI {{ $kpi->tahun }} | PSL Track
 @endsection
 
 @section('content')
@@ -18,31 +18,25 @@
     @endif
 
     <style>
-        /* Header accordion */
         .accordion-header {
             display: flex;
             align-items: stretch;
         }
 
-        /* Tombol accordion tetap mengambil sisa ruang */
         .accordion-header .accordion-button {
             flex: 1;
         }
 
-        /* Panah di sebelah kiri */
         .accordion-header .accordion-button::after {
             order: -1;
             margin-left: 0;
             margin-right: 10px;
         }
 
-        /* Titik tiga: default tersembunyi */
         .accordion-header-actions {
             display: none;
         }
 
-        /* Saat accordion TERBUKA, titik tiga muncul
-                                                   dan background mengikuti warna accordion-button */
         .accordion-item:has(> .accordion-collapse.show)>.accordion-header>.accordion-header-actions {
             display: flex;
             align-items: center;
@@ -50,19 +44,16 @@
             background-color: var(--bs-accordion-active-bg);
         }
 
-        /* Tombol titik tiga */
         .accordion-header-actions .dropdown-toggle {
             border: 0;
             background: transparent;
             padding: 5px 0;
         }
 
-        /* Hilangkan tanda panah dropdown */
         .accordion-header-actions .dropdown-toggle::after {
             display: none;
         }
     </style>
-
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">
@@ -71,7 +62,7 @@
                     <div class="col-12">
                         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                             <h3 class="mb-sm-0">
-                                Detail KPI
+                                KPI PSL Tahun {{ $kpi->tahun }}
                             </h3>
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
@@ -96,9 +87,9 @@
                         </div>
                         <div class="card-body">
                             <div class="accordion" id="accordionExample">
-                                @foreach ($kpi->sasaranProgram as $sasaran)
+                                <div class="accordion-item">
                                     {{-- SASARAN PROGRAM --}}
-                                    <div class="accordion-item">
+                                    @foreach ($kpi->sasaranProgram as $sasaran)
                                         <h2 class="accordion-header" id="headingOne">
                                             <button class="accordion-button fw-bold" type="button"
                                                 data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"
@@ -111,19 +102,123 @@
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </button>
                                                 <div class="dropdown-menu dropdown-menu-end dropdownmenu-primary">
-                                                    <a class="dropdown-item" href="#">
+                                                    <a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                                        data-bs-target="#editSasaranModal{{ $sasaran->id_sasaran }}">
                                                         Edit Sasaran
                                                     </a>
-                                                    <a class="dropdown-item" href="#">
-                                                        Hapus Sasaran
-                                                    </a>
+                                                    <form
+                                                        action="{{ route('sasaran-program.destroy', $sasaran->id_sasaran) }}"
+                                                        method="POST" class="delete-form">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" class="dropdown-item"
+                                                            onclick="confirmDelete(this, 'sasaran')">
+                                                            Hapus Sasaran
+                                                        </button>
+                                                    </form>
                                                     <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item" href="#">
+                                                    <button type="button" class="btn dropdown-item" data-bs-toggle="modal"
+                                                        data-bs-target="#tambahProgramModal"
+                                                        data-id-sasaran="{{ $sasaran->id_sasaran }}">
                                                         Tambah Program
-                                                    </a>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </h2>
+                                        {{-- modal edit sasaran --}}
+                                        <div class="modal fade" id="editSasaranModal{{ $sasaran->id_sasaran }}"
+                                            data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" role="dialog"
+                                            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="staticBackdropLabel">
+                                                            Edit Sasaran Program
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                    </div>
+                                                    <form
+                                                        action="{{ route('sasaran-program.update', $sasaran->id_sasaran) }}"
+                                                        method="POST">
+                                                        @csrf @method('PUT')
+                                                        <input type="hidden" name="id_kpi"
+                                                            value="{{ $sasaran->id_kpi }}">
+                                                        <div class="modal-body">
+                                                            <div class="row mb-2">
+                                                                <label for="nama_sasaran"
+                                                                    class="col-sm-3 col-form-label">Nama
+                                                                    Sasaran</label>
+                                                                <div class="col-sm-9">
+                                                                    <input type="text" class="form-control"
+                                                                        id="nama_sasaran" name="nama_sasaran"
+                                                                        value="{{ old('nama_sasaran', $sasaran->nama_sasaran) }}"
+                                                                        required />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-light"
+                                                                data-bs-dismiss="modal">
+                                                                Batal
+                                                            </button>
+                                                            <button type="submit" class="btn btn-primary"
+                                                                data-bs-dismiss="modal" id="alert-success">
+                                                                Simpan
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- modal tambah program --}}
+                                        <div class="modal fade" id="tambahProgramModal" data-bs-backdrop="static"
+                                            data-bs-keyboard="false" tabindex="-1" role="dialog"
+                                            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="staticBackdropLabel">
+                                                            Tambah Program
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                    </div>
+                                                    <form action="{{ route('program.store') }}" method="POST">
+                                                        @csrf
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="id_sasaran"
+                                                                id="id_sasaran_program">
+                                                            <div class="row mb-2">
+                                                                <label for="nama_program"
+                                                                    class="col-sm-3 col-form-label">Nama Program</label>
+                                                                <div class="col-sm-9">
+                                                                    <input type="text" class="form-control"
+                                                                        id="nama_program" name="nama_program"
+                                                                        value="{{ old('nama_program') }}" required />
+                                                                    @error('nama_program')
+                                                                        <div class="invalid-feedback">
+                                                                            {{ $message }}
+                                                                        </div>
+                                                                    @enderror
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-light"
+                                                                data-bs-dismiss="modal">
+                                                                Batal
+                                                            </button>
+                                                            <button type="submit" class="btn btn-primary"
+                                                                id="alert-success">
+                                                                Simpan
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {{-- PROGRAM --}}
                                         @foreach ($sasaran->program as $program)
                                             <div id="collapseOne" class="accordion-collapse collapse show"
@@ -150,19 +245,90 @@
                                                                             </button>
                                                                             <div
                                                                                 class="dropdown-menu dropdown-menu-end dropdownmenu-primary">
-                                                                                <a class="dropdown-item" href="#">
+                                                                                <a class="dropdown-item" href="#"
+                                                                                    data-bs-toggle="modal"
+                                                                                    data-bs-target="#editProgramModal{{ $program->id_program }}">
                                                                                     Edit Program
                                                                                 </a>
-                                                                                <a class="dropdown-item" href="#">
-                                                                                    Hapus Program
-                                                                                </a>
+                                                                                <form
+                                                                                    action="{{ route('program.destroy', $program->id_program) }}"
+                                                                                    method="POST" class="delete-form">
+                                                                                    @csrf
+                                                                                    @method('DELETE')
+                                                                                    <button type="button"
+                                                                                        class="dropdown-item"
+                                                                                        onclick="confirmDelete(this, 'program')">
+                                                                                        Hapus Program
+                                                                                    </button>
+                                                                                </form>
                                                                                 <div class="dropdown-divider"></div>
-                                                                                <a class="dropdown-item" href="#">
+                                                                                <a class="dropdown-item"
+                                                                                    href="{{ route('indikator-program.create', ['id_program' => $program->id_program]) }}">
                                                                                     Tambah Indikator
                                                                                 </a>
                                                                             </div>
                                                                         </div>
                                                                     </h2>
+                                                                    {{-- modal edit program --}}
+                                                                    <div class="modal fade"
+                                                                        id="editProgramModal{{ $program->id_program }}"
+                                                                        data-bs-backdrop="static" data-bs-keyboard="false"
+                                                                        tabindex="-1" role="dialog"
+                                                                        aria-labelledby="staticBackdropLabel"
+                                                                        aria-hidden="true">
+                                                                        <div class="modal-dialog modal-dialog-centered"
+                                                                            role="document">
+                                                                            <div class="modal-content">
+                                                                                <div class="modal-header">
+                                                                                    <h5 class="modal-title"
+                                                                                        id="staticBackdropLabel">
+                                                                                        Edit Program
+                                                                                    </h5>
+                                                                                    <button type="button"
+                                                                                        class="btn-close"
+                                                                                        data-bs-dismiss="modal"
+                                                                                        aria-label="Close"></button>
+                                                                                </div>
+                                                                                <form
+                                                                                    action="{{ route('program.update', $program->id_program) }}"
+                                                                                    method="POST">
+                                                                                    @csrf @method('PUT')
+                                                                                    <input type="hidden"
+                                                                                        name="id_sasaran"
+                                                                                        value="{{ $program->id_sasaran }}">
+                                                                                    <div class="modal-body">
+                                                                                        <div class="row mb-2">
+                                                                                            <label for="nama_program"
+                                                                                                class="col-sm-3 col-form-label">Nama
+                                                                                                Program</label>
+                                                                                            <div class="col-sm-9">
+                                                                                                <input type="text"
+                                                                                                    class="form-control"
+                                                                                                    id="nama_program"
+                                                                                                    name="nama_program"
+                                                                                                    value="{{ old('nama_program', $program->nama_program) }}"
+                                                                                                    required />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="modal-footer">
+                                                                                        <button type="button"
+                                                                                            class="btn btn-light"
+                                                                                            data-bs-dismiss="modal">
+                                                                                            Batal
+                                                                                        </button>
+                                                                                        <button type="submit"
+                                                                                            class="btn btn-primary"
+                                                                                            data-bs-dismiss="modal"
+                                                                                            id="alert-success">
+                                                                                            Simpan
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </form>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    {{-- end modal --}}
                                                                     {{-- INDIKATOR PROGRAM --}}
                                                                     <div id="panelsStayOpen-collapseOne"
                                                                         class="accordion-collapse collapse show"
@@ -181,7 +347,8 @@
                                                                                                     Indikator
                                                                                                     Program
                                                                                                 </th>
-                                                                                                <th data-priority="1">Target
+                                                                                                <th data-priority="1">
+                                                                                                    Target
                                                                                                 </th>
                                                                                                 <th data-priority="3">
                                                                                                     Periode
@@ -204,7 +371,32 @@
                                                                                                     </td>
                                                                                                     <td>{{ $indikator->periode_pengukuran }}
                                                                                                     </td>
-                                                                                                    <td>{{ $indikator->pic }}
+                                                                                                    <td>
+                                                                                                        @foreach ($indikator->picIndikator ?? [] as $pic)
+                                                                                                            @php
+                                                                                                                $namaPic = explode(
+                                                                                                                    ' ',
+                                                                                                                    trim(
+                                                                                                                        $pic
+                                                                                                                            ->user
+                                                                                                                            ->nama,
+                                                                                                                    ),
+                                                                                                                );
+                                                                                                                $namaSingkat = implode(
+                                                                                                                    ' ',
+                                                                                                                    array_slice(
+                                                                                                                        $namaPic,
+                                                                                                                        0,
+                                                                                                                        2,
+                                                                                                                    ),
+                                                                                                                );
+                                                                                                            @endphp
+
+                                                                                                            <span
+                                                                                                                class="badge bg-primary">
+                                                                                                                {{ $namaSingkat }}
+                                                                                                            </span>
+                                                                                                        @endforeach
                                                                                                     </td>
                                                                                                     <td>
                                                                                                         <div
@@ -220,11 +412,22 @@
                                                                                                             <div
                                                                                                                 class="dropdown-menu dropdownmenu-primary">
                                                                                                                 <a class="dropdown-item"
-                                                                                                                    href="#">Edit
+                                                                                                                    href="{{ route('indikator-program.edit', $indikator->id_indikator) }}">Edit
                                                                                                                     Indikator</a>
-                                                                                                                <a class="dropdown-item"
-                                                                                                                    href="#">Hapus
-                                                                                                                    Indikator</a>
+                                                                                                                <form
+                                                                                                                    action="{{ route('indikator-program.destroy', $indikator->id_indikator) }}"
+                                                                                                                    method="POST"
+                                                                                                                    class="delete-form">
+                                                                                                                    @csrf
+                                                                                                                    @method('DELETE')
+                                                                                                                    <button
+                                                                                                                        type="button"
+                                                                                                                        class="dropdown-item"
+                                                                                                                        onclick="confirmDelete(this, 'indikator')">
+                                                                                                                        Hapus
+                                                                                                                        Indikator
+                                                                                                                    </button>
+                                                                                                                </form>
                                                                                                                 <div
                                                                                                                     class="dropdown-divider">
                                                                                                                 </div>
@@ -248,8 +451,55 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            {{-- modal edit program --}}
+                                            <div class="modal fade" id="editSasaranModal{{ $sasaran->id_sasaran }}"
+                                                data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                                                role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="staticBackdropLabel">
+                                                                Edit Sasaran Program
+                                                            </h5>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form
+                                                            action="{{ route('sasaran-program.update', $sasaran->id_sasaran) }}"
+                                                            method="POST">
+                                                            @csrf @method('PUT')
+                                                            <input type="hidden" name="id_kpi"
+                                                                value="{{ $sasaran->id_kpi }}">
+                                                            <div class="modal-body">
+                                                                <div class="row mb-2">
+                                                                    <label for="nama_sasaran"
+                                                                        class="col-sm-3 col-form-label">Nama
+                                                                        Sasaran</label>
+                                                                    <div class="col-sm-9">
+                                                                        <input type="text" class="form-control"
+                                                                            id="nama_sasaran" name="nama_sasaran"
+                                                                            value="{{ old('nama_sasaran', $sasaran->nama_sasaran) }}"
+                                                                            required />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-light"
+                                                                    data-bs-dismiss="modal">
+                                                                    Batal
+                                                                </button>
+                                                                <button type="submit" class="btn btn-primary"
+                                                                    data-bs-dismiss="modal" id="alert-success">
+                                                                    Simpan
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {{-- end modal --}}
                                         @endforeach
-                                    </div>
+                                </div>
                                 @endforeach
                             </div><!-- end accordion -->
                         </div><!-- end card-body -->
@@ -258,4 +508,64 @@
             </div>
         </div>
     </div>
+
+    {{-- SweetAlert Hapus --}}
+    <script>
+        function confirmDelete(button, type) {
+
+            let title = '';
+            let text = '';
+
+            if (type === 'sasaran') {
+                title = 'Hapus Sasaran?';
+                text =
+                    'Menghapus sasaran juga dapat menghapus data program dan indikator di dalamnya. Data yang telah dihapus tidak dapat dikembalikan.';
+            }
+
+            if (type === 'program') {
+                title = 'Hapus Program?';
+                text =
+                    'Menghapus program juga dapat menghapus indikator di dalamnya. Data yang telah dihapus tidak dapat dikembalikan.';
+            }
+
+            if (type === 'indikator') {
+                title = 'Hapus Indikator?';
+                text = 'Data indikator yang dihapus tidak dapat dikembalikan.';
+            }
+
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#2ab57d',
+                cancelButtonColor: '#fd625e',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+                    button.closest('form').submit();
+                }
+
+            });
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const tambahProgramModal = document.getElementById('tambahProgramModal');
+
+            tambahProgramModal.addEventListener('show.bs.modal', function(event) {
+
+                const button = event.relatedTarget;
+
+                const idSasaran = button.getAttribute('data-id-sasaran');
+
+                document.getElementById('id_sasaran_program').value = idSasaran;
+            });
+
+        });
+    </script>
 @endsection

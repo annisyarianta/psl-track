@@ -47,7 +47,7 @@ class SasaranProgramController extends Controller
 
         $sasaranProgram->update($validated);
 
-        return redirect()->route('sasaran-program.index')->with('success', 'Sasaran Program berhasil diperbarui.');
+        return redirect()->route('kpi.show', $sasaranProgram->id_kpi)->with('success', 'Sasaran Program berhasil diperbarui.');
     }
 
     public function destroy(SasaranProgram $sasaranProgram)
