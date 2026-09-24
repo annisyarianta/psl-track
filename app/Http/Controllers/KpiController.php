@@ -3,11 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kpi;
-use App\Models\SasaranProgram;
-use App\Models\Program;
-use App\Models\IndikatorProgram;
+use App\Models\PeriodeTw;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class KpiController extends Controller
 {
@@ -38,7 +35,22 @@ class KpiController extends Controller
             'judul_kpi' => 'required|string|max:255',
         ]);
 
-        Kpi::create($validated);
+        $kpi = Kpi::create($validated);
+
+        $triwulans = [
+            'TW I',
+            'TW II',
+            'TW III',
+            'TW IV',
+        ];
+
+        foreach ($triwulans as $triwulan) {
+
+            PeriodeTw::create([
+                'id_kpi' => $kpi->id_kpi,
+                'triwulan' => $triwulan,
+            ]);
+        }
 
         return redirect()->route('kpi.index')->with('success', 'KPI berhasil ditambahkan.');
     }

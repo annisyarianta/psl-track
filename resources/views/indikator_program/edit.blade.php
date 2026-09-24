@@ -125,11 +125,10 @@
                                         </div>
                                     </div>
                                     <div class="row mb-4">
-                                        <label for="due_date" class="col-sm-2 col-form-label">Due
-                                            Date</label>
+                                        <label for="due_date" class="col-sm-2 col-form-label">Due Date</label>
                                         <div class="col-sm-10">
                                             <input type="date" class="form-control" id="due_date" name="due_date"
-                                                value="{{ old('due_date', $indikatorProgram->due_date) }}">
+                                                value="{{ old('due_date', $indikatorProgram->due_date ? \Carbon\Carbon::parse($indikatorProgram->due_date)->format('Y-m-d') : '') }}">
                                         </div>
                                     </div>
                                     <div class="row">

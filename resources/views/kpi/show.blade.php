@@ -432,7 +432,7 @@
                                                                                                                     class="dropdown-divider">
                                                                                                                 </div>
                                                                                                                 <a class="dropdown-item"
-                                                                                                                    href="#">Lihat
+                                                                                                                    href="{{ route('indikator.monitoring', $indikator->id_indikator) }}">Lihat
                                                                                                                     Monitoring</a>
                                                                                                             </div>
                                                                                                         </div>

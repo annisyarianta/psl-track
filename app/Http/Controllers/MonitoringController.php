@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kpi;
+use App\Models\SasaranProgram;
+use App\Models\Program;
+use App\Models\PicIndikator;
 use App\Models\Monitoring;
 use App\Models\PeriodeTw;
 use App\Models\IndikatorProgram;
@@ -9,21 +13,76 @@ use Illuminate\Http\Request;
 
 class MonitoringController extends Controller
 {
-    // TODO enum: sesuaikan pilihan status
     private array $statusOptions = ['draft', 'submitted', 'verified'];
 
-    public function index()
+    public function index($id_indikator)
     {
-        $monitorings = Monitoring::with(['periodeTw', 'indikatorProgram'])->paginate(10);
-        return view('monitoring.index', compact('monitorings'));
+        $indikatorProgram = IndikatorProgram::with([
+            'program.sasaranProgram.kpi',
+        ])->findOrFail($id_indikator);
+
+        $program = $indikatorProgram->program;
+        $sasaranProgram = $program?->sasaranProgram;
+        $kpi = $sasaranProgram?->kpi;
+
+        $picIndikators = $indikatorProgram->picIndikator()
+            ->with('user')
+            ->get();
+
+        for ($i = 1; $i <= 4; $i++) {
+
+            PeriodeTw::firstOrCreate([
+                'id_kpi' => $kpi->id_kpi,
+                'triwulan' => $i,
+            ]);
+        }
+
+        $periodeTw = PeriodeTw::where('id_kpi', $kpi->id_kpi)
+            ->orderBy('triwulan')
+            ->get();
+
+        $monitorings = Monitoring::with([
+            'periodeTw',
+            'filePelaporan',
+            'updatedBy',
+        ])
+            ->where('id_indikator', $id_indikator)
+            ->get()
+            ->keyBy('id_periode_tw');
+
+        return view('monitoring.index', compact(
+            'kpi',
+            'sasaranProgram',
+            'program',
+            'indikatorProgram',
+            'picIndikators',
+            'periodeTw',
+            'monitorings'
+        ));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $periodeTws = PeriodeTw::all();
-        $indikatorPrograms = IndikatorProgram::all();
+        $request->validate([
+            'id_indikator' => 'required|integer|exists:indikator_program,id_indikator',
+            'id_periode_tw' => 'required|integer|exists:periode_tw,id_periode_tw',
+        ]);
+
+        $indikatorProgram = IndikatorProgram::findOrFail(
+            $request->id_indikator
+        );
+
+        $periodeTw = PeriodeTw::findOrFail(
+            $request->id_periode_tw
+        );
+
         $statusOptions = $this->statusOptions;
-        return view('monitoring.create', compact('periodeTws', 'indikatorPrograms', 'statusOptions'));
+
+        return view('monitoring.create', compact(
+            'indikatorProgram',
+            'periodeTw',
+            'statusOptions'
+        ));
     }
 
     public function store(Request $request)

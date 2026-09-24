@@ -84,9 +84,14 @@ Route::middleware([
     Route::resource('sasaran-program', SasaranProgramController::class);
     Route::resource('program', ProgramController::class);
     Route::resource('indikator-program', IndikatorProgramController::class);
+    Route::get(
+        '/indikator-program/{id_indikator}/monitoring',
+        [MonitoringController::class, 'index']
+    )->name('indikator.monitoring');
+    Route::resource('monitoring', MonitoringController::class)
+        ->except(['index', 'show']);
     Route::resource('pic-indikator', PicIndikatorController::class);
     Route::resource('periode-tw', PeriodeTwController::class);
-    Route::resource('monitoring', MonitoringController::class);
     Route::resource('file-pelaporan', FilePelaporanController::class);
 });
 

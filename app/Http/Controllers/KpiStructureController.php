@@ -13,17 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class KpiStructureController extends Controller
 {
-    /**
-     * Pilihan aspek indikator.
-     */
+
     private array $aspekOptions = [
         'Kualitas',
         'Kuantitas',
     ];
 
-    /**
-     * Menampilkan halaman struktur KPI.
-     */
     public function create($id_kpi)
     {
         $kpi = Kpi::findOrFail($id_kpi);
@@ -37,35 +32,23 @@ class KpiStructureController extends Controller
         ));
     }
 
-    /**
-     * Menyimpan Sasaran → Program → Indikator.
-     */
     public function store(Request $request, $id_kpi)
     {
         $kpi = Kpi::findOrFail($id_kpi);
 
         $validated = $request->validate([
-            // =========================
-            // SASARAN
-            // =========================
             'nama_sasaran' => [
                 'required',
                 'string',
                 'max:255',
             ],
 
-            // =========================
-            // PROGRAM
-            // =========================
             'nama_program' => [
                 'required',
                 'string',
                 'max:255',
             ],
 
-            // =========================
-            // INDIKATOR
-            // =========================
             'nama_indikator' => [
                 'required',
                 'string',
@@ -105,30 +88,15 @@ class KpiStructureController extends Controller
 
         try {
             DB::transaction(function () use ($validated, $kpi) {
-
-                // ========================================
-                // 1. SIMPAN SASARAN
-                // ========================================
-
                 $sasaran = SasaranProgram::create([
                     'id_kpi' => $kpi->id_kpi,
                     'nama_sasaran' => $validated['nama_sasaran'],
                 ]);
 
-
-                // ========================================
-                // 2. SIMPAN PROGRAM
-                // ========================================
-
                 $program = Program::create([
                     'id_sasaran' => $sasaran->id_sasaran,
                     'nama_program' => $validated['nama_program'],
                 ]);
-
-
-                // ========================================
-                // 3. SIMPAN INDIKATOR
-                // ========================================
 
                 $indikator = IndikatorProgram::create([
                     'id_program' => $program->id_program,
@@ -146,7 +114,6 @@ class KpiStructureController extends Controller
                 ]);
             });
 
-            // Jika semuanya berhasil, kembali ke detail KPI.
             return redirect()
                 ->route('kpi.show', $kpi->id_kpi)
                 ->with(
@@ -155,7 +122,6 @@ class KpiStructureController extends Controller
                 );
         } catch (\Throwable $e) {
 
-            // Jika terjadi error, kembali ke form.
             return back()
                 ->withInput()
                 ->with(

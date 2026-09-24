@@ -324,13 +324,11 @@
                                                     <div class="col-lg-6">
                                                         <div class="mb-3">
                                                             <label for="pic_indikator" class="form-label">PIC</label>
-                                                            <select class="form-select" id="pic_indikator"
-                                                                name="id_user">
-                                                                <option value="">
-                                                                    Pilih PIC
-                                                                </option>
+                                                            <select class="form-control" name="id_user[]" id="pic_indikator" multiple
+                                                                placeholder="Pilih PIC">
                                                                 @foreach ($users as $user)
-                                                                    <option value="{{ $user->id_user }}">
+                                                                    <option value="{{ $user->id_user }}"
+                                                                        {{ in_array($user->id_user, old('id_user', [])) ? 'selected' : '' }}>
                                                                         {{ $user->nama }}
                                                                     </option>
                                                                 @endforeach
@@ -618,6 +616,16 @@
                 if (result.isConfirmed) {
                     this.submit();
                 }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new Choices('#pic_indikator', {
+                removeItemButton: true,
+                placeholder: true,
+                placeholderValue: 'Tambah PIC',
+                searchEnabled: true
             });
         });
     </script>
