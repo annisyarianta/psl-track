@@ -5,6 +5,12 @@
 @endsection
 
 @section('content')
+@if (session('success'))
+        <script>
+            alertify.success(@json(session('success')));
+        </script>
+    @endif
+
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">

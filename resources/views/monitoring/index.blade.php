@@ -210,16 +210,16 @@
                                         @php
                                             $monitoring = $monitorings->get($periode->id_periode_tw);
                                             if (!$monitoring) {
-                                                $statusLabel = 'Belum Diisi';
+                                                $statusLabel = 'Belum Dimulai';
                                                 $statusClass = 'bg-light text-muted';
-                                            } elseif ($monitoring->status === 'verified') {
-                                                $statusLabel = 'Verified';
-                                                $statusClass = 'bg-success-subtle text-success';
-                                            } elseif ($monitoring->status === 'submitted') {
-                                                $statusLabel = 'Submitted';
+                                            } elseif ($monitoring->status === 'onprogress') {
+                                                $statusLabel = 'Sedang Berlangsung';
                                                 $statusClass = 'bg-warning-subtle text-warning';
+                                            } elseif ($monitoring->status === 'done') {
+                                                $statusLabel = 'Selesai';
+                                                $statusClass = 'bg-success-subtle text-success';
                                             } else {
-                                                $statusLabel = 'Draft';
+                                                $statusLabel = 'Belum Diisi';
                                                 $statusClass = 'bg-secondary-subtle text-secondary';
                                             }
 
@@ -252,11 +252,11 @@
                                                                 </div>
                                                                 <div class="text-muted font-size-12 mt-1">
                                                                     @if ($monitoring)
-                                                                        {{ count($capaianList) }}
+                                                                        {{-- {{ count($capaianList) }}
                                                                         poin capaian
                                                                         <span class="mx-1">
                                                                             •
-                                                                        </span>
+                                                                        </span> --}}
                                                                         {{ $files->count() }}
                                                                         dokumen
                                                                     @else
@@ -270,14 +270,6 @@
                                                                     class="badge rounded-pill {{ $statusClass }} px-3 py-2">
                                                                     {{ $statusLabel }}
                                                                 </span>
-                                                                @if ($monitoring && $monitoring->last_updated_at)
-                                                                    <div class="text-muted font-size-11 mt-1">
-                                                                        Diperbarui oleh
-                                                                        {{ $monitoring->updatedBy->nama ?? '-' }}
-                                                                        ·
-                                                                        {{ \Carbon\Carbon::parse($monitoring->last_updated_at)->format('d M Y, H:i') }}
-                                                                    </div>
-                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>
@@ -392,9 +384,15 @@
                                                                 Identifikasi
                                                             </h6>
                                                             @if ($monitoring->identifikasi)
-                                                                <div class="text-muted">
-                                                                    {!! nl2br(e($monitoring->identifikasi)) !!}
-                                                                </div>
+                                                                <ul class="text-muted mb-0 ps-3">
+                                                                    @foreach (preg_split('/\r\n|\r|\n/', $monitoring->identifikasi) as $poin)
+                                                                        @if (trim($poin) !== '')
+                                                                            <li class="mb-1">
+                                                                                {{ $poin }}
+                                                                            </li>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </ul>
                                                             @else
                                                                 <span class="text-muted">
                                                                     Tidak ada identifikasi.
@@ -405,13 +403,13 @@
                                                             <div class="d-flex align-items-center justify-content-between">
                                                                 <div>
                                                                     <div class="text-muted font-size-12">
-                                                                        Terakhir diperbarui
+                                                                        Terakhir diperbarui oleh
                                                                     </div>
                                                                     <div class="font-size-13">
                                                                         {{ $monitoring->updatedBy->nama ?? '-' }}
                                                                         @if ($monitoring->last_updated_at)
-                                                                            ·
-                                                                            {{ \Carbon\Carbon::parse($monitoring->last_updated_at)->format('d M Y, H:i') }}
+                                                                            pada
+                                                                            {{ \Carbon\Carbon::parse($monitoring->last_updated_at)->format('d M Y') }}
                                                                         @endif
                                                                     </div>
                                                                 </div>

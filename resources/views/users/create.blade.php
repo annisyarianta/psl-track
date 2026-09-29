@@ -5,6 +5,12 @@
 @endsection
 
 @section('content')
+    @if (session('success'))
+        <script>
+            alertify.success(@json(session('success')));
+        </script>
+    @endif
+
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">
@@ -15,7 +21,6 @@
                             <h3 class="mb-sm-0">
                                 Tambah Pengguna
                             </h3>
-
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
                                     <li class="breadcrumb-item">
@@ -78,7 +83,7 @@
                                         <label for="unit-input" class="col-sm-2 col-form-label">Unit</label>
                                         <div class="col-sm-10">
                                             <select class="form-select" name="unit" id="unit-input">
-                                                <option value="">
+                                                <option value="" disabled selected>
                                                     -- Pilih Unit --
                                                 </option>
                                                 <option value="perencanaan"
@@ -99,7 +104,7 @@
                                                 class="text-danger">*</span></label>
                                         <div class="col-sm-10">
                                             <select class="form-select" name="role" id="role-input" required>
-                                                <option value="">
+                                                <option value="" disabled selected>
                                                     -- Pilih Role --
                                                 </option>
                                                 <option value="manager" {{ old('role') == 'manager' ? 'selected' : '' }}>

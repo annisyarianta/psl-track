@@ -97,7 +97,7 @@
                         <div class="row">
                             @foreach ($kpis as $kpi)
                                 <div class="col-sm-6 col-lg-4">
-                                    <div class="card">
+                                    <div class="card bg-sublte-info border-info-subtle">
                                         <div class="card-body">
                                             <h5 class="card-title">{{ $kpi->tahun }}</h5>
                                             <p class="card-text">{{ $kpi->judul_kpi }}

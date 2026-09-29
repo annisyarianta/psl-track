@@ -10,11 +10,11 @@ use App\Models\Monitoring;
 use App\Models\PeriodeTw;
 use App\Models\IndikatorProgram;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
 
 class MonitoringController extends Controller
 {
-    private array $statusOptions = ['draft', 'submitted', 'verified'];
-
     public function index($id_indikator)
     {
         $indikatorProgram = IndikatorProgram::with([
@@ -76,12 +76,9 @@ class MonitoringController extends Controller
             $request->id_periode_tw
         );
 
-        $statusOptions = $this->statusOptions;
-
         return view('monitoring.create', compact(
             'indikatorProgram',
             'periodeTw',
-            'statusOptions'
         ));
     }
 
@@ -90,46 +87,101 @@ class MonitoringController extends Controller
         $validated = $request->validate([
             'id_periode_tw' => 'required|exists:periode_tw,id_periode_tw',
             'id_indikator' => 'required|exists:indikator_program,id_indikator',
-            'capaian' => 'nullable|string|max:255',
+            'capaian' => 'required|string|max:255',
             'keterangan' => 'nullable|string|max:255',
             'identifikasi' => 'nullable|string|max:255',
-            'status' => 'required|in:' . implode(',', $this->statusOptions),
+            'status' => 'nullable',
+            Rule::in([
+                'notstarted',
+                'onprogress',
+                'done',
+            ]),
         ]);
 
-        // otomatis dari user yang sedang login
         $validated['last_updated_by'] = auth()->id();
         $validated['last_updated_at'] = now();
 
-        Monitoring::create($validated);
+        $monitoring = Monitoring::create($validated);
 
-        return redirect()->route('monitoring.index')->with('success', 'Monitoring berhasil ditambahkan.');
+        return redirect()->route('indikator.monitoring', $monitoring->id_indikator)->with('success', 'Monitoring berhasil ditambahkan.');
     }
 
     public function edit(Monitoring $monitoring)
     {
-        $periodeTws = PeriodeTw::all();
-        $indikatorPrograms = IndikatorProgram::all();
-        $statusOptions = $this->statusOptions;
-        return view('monitoring.edit', compact('monitoring', 'periodeTws', 'indikatorPrograms', 'statusOptions'));
+        $periodeTw = PeriodeTw::findOrFail($monitoring->id_periode_tw);
+        $indikatorProgram = IndikatorProgram::findOrFail(
+            $monitoring->id_indikator
+        );
+
+        return view('monitoring.edit', compact(
+            'monitoring',
+            'periodeTw',
+            'indikatorProgram'
+        ));
     }
 
     public function update(Request $request, Monitoring $monitoring)
     {
         $validated = $request->validate([
-            'id_periode_tw' => 'required|exists:periode_tw,id_periode_tw',
-            'id_indikator' => 'required|exists:indikator_program,id_indikator',
-            'capaian' => 'nullable|string|max:255',
-            'keterangan' => 'nullable|string|max:255',
-            'identifikasi' => 'nullable|string|max:255',
-            'status' => 'required|in:' . implode(',', $this->statusOptions),
+            'id_periode_tw' => [
+                'required',
+                'exists:periode_tw,id_periode_tw',
+            ],
+
+            'id_indikator' => [
+                'required',
+                'exists:indikator_program,id_indikator',
+            ],
+
+            'capaian' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'identifikasi' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'keterangan' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'status' => [
+                'required',
+                Rule::in([
+                    'notstarted',
+                    'onprogress',
+                    'done',
+                ]),
+            ],
+
+            'dokumen.*' => [
+                'nullable',
+                'file',
+                'mimes:pdf,doc,docx,xls,xlsx',
+                'max:10240',
+            ],
         ]);
 
         $validated['last_updated_by'] = auth()->id();
         $validated['last_updated_at'] = now();
-
+        unset($validated['dokumen']);
         $monitoring->update($validated);
 
-        return redirect()->route('monitoring.index')->with('success', 'Monitoring berhasil diperbarui.');
+        return redirect()
+            ->route(
+                'indikator.monitoring',
+                $monitoring->id_indikator
+            )
+            ->with(
+                'success',
+                'Monitoring berhasil diperbarui.'
+            );
     }
 
     public function destroy(Monitoring $monitoring)

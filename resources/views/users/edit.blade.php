@@ -5,6 +5,12 @@
 @endsection
 
 @section('content')
+    @if (session('success'))
+        <script>
+            alertify.success(@json(session('success')));
+        </script>
+    @endif
+    
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">
@@ -83,7 +89,8 @@
                                         <div class="col-sm-10">
                                             <select class="form-select" id="unit-input" name="unit">
                                                 <option value=""
-                                                    {{ old('unit', $user->unit) == NULL ? 'selected' : '' }}>-- Pilih Unit --
+                                                    {{ old('unit', $user->unit) == null ? 'selected' : '' }}>-- Pilih Unit
+                                                    --
                                                 </option>
                                                 <option value="perencanaan"
                                                     {{ old('unit', $user->unit) == 'perencanaan' ? 'selected' : '' }}>
