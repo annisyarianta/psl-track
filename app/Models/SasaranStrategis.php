@@ -4,17 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PeriodeTw extends Model
+class SasaranStrategis extends Model
 {
-    protected $table = 'periode_tw';
+    protected $table = 'sasaran_strategis';
 
-    protected $primaryKey = 'id_periode_tw';
+    protected $primaryKey = 'id_sasaran_strategis';
 
     public $timestamps = false;
 
     protected $fillable = [
         'id_tahun',
-        'triwulan',
+        'nama_sasaran_strategis',
     ];
 
     public function tahun()
@@ -26,12 +26,12 @@ class PeriodeTw extends Model
         );
     }
 
-    public function monitoring()
+    public function indikatorKpi()
     {
         return $this->hasMany(
-            Monitoring::class,
-            'id_periode_tw',
-            'id_periode_tw'
+            IndikatorKpi::class,
+            'id_sasaran_strategis',
+            'id_sasaran_strategis'
         );
     }
 }

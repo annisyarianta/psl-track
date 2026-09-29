@@ -7,30 +7,60 @@ use Illuminate\Database\Eloquent\Model;
 class Monitoring extends Model
 {
     protected $table = 'monitoring';
+
     protected $primaryKey = 'id_monitoring';
+
     public $timestamps = false;
+
     protected $fillable = [
-        'id_periode_tw', 'id_indikator', 'capaian', 'keterangan',
-        'identifikasi', 'last_updated_by', 'last_updated_at', 'status',
+        'id_periode_tw',
+        'id_indikator_sub_kegiatan',
+        'upaya',
+        'capaian',
+        'keterangan',
+        'identifikasi',
+        'last_updated_by',
+        'last_updated_at',
+        'status',
+    ];
+
+    protected $casts = [
+        'last_updated_at' => 'datetime',
     ];
 
     public function periodeTw()
     {
-        return $this->belongsTo(PeriodeTw::class, 'id_periode_tw', 'id_periode_tw');
+        return $this->belongsTo(
+            PeriodeTw::class,
+            'id_periode_tw',
+            'id_periode_tw'
+        );
     }
 
-    public function indikatorProgram()
+    public function indikatorSubKegiatan()
     {
-        return $this->belongsTo(IndikatorProgram::class, 'id_indikator', 'id_indikator');
+        return $this->belongsTo(
+            IndikatorSubKegiatan::class,
+            'id_indikator_sub_kegiatan',
+            'id_indikator_sub_kegiatan'
+        );
     }
 
-    public function updatedBy()
+    public function lastUpdatedBy()
     {
-        return $this->belongsTo(User::class, 'last_updated_by', 'id_user');
+        return $this->belongsTo(
+            User::class,
+            'last_updated_by',
+            'id_user'
+        );
     }
 
-    public function filePelaporan()
+    public function files()
     {
-        return $this->hasMany(FilePelaporan::class, 'id_monitoring', 'id_monitoring');
+        return $this->hasMany(
+            FilePelaporan::class,
+            'id_monitoring',
+            'id_monitoring'
+        );
     }
 }

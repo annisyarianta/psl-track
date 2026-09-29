@@ -7,17 +7,38 @@ use Illuminate\Database\Eloquent\Model;
 class FilePelaporan extends Model
 {
     protected $table = 'file_pelaporan';
+
     protected $primaryKey = 'id_file';
+
     public $timestamps = false;
-    protected $fillable = ['id_monitoring', 'nama_file', 'path_file', 'uploaded_by', 'uploaded_at'];
+
+    protected $fillable = [
+        'id_monitoring',
+        'nama_file',
+        'path_file',
+        'uploaded_by',
+        'uploaded_at',
+    ];
+
+    protected $casts = [
+        'uploaded_at' => 'datetime',
+    ];
 
     public function monitoring()
     {
-        return $this->belongsTo(Monitoring::class, 'id_monitoring', 'id_monitoring');
+        return $this->belongsTo(
+            Monitoring::class,
+            'id_monitoring',
+            'id_monitoring'
+        );
     }
 
     public function uploadedBy()
     {
-        return $this->belongsTo(User::class, 'uploaded_by', 'id_user');
+        return $this->belongsTo(
+            User::class,
+            'uploaded_by',
+            'id_user'
+        );
     }
 }
