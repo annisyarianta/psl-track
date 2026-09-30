@@ -4,140 +4,170 @@ namespace App\Http\Controllers;
 
 use App\Models\IndikatorProgram;
 use App\Models\Program;
-use App\Models\User;
-use App\Models\PicIndikator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class IndikatorProgramController extends Controller
 {
-    // TODO enum: sesuaikan pilihan aspek
-    private array $aspekOptions = ['Kualitas', 'Kuantitas'];
-
     public function index()
     {
-        $indikatorPrograms = IndikatorProgram::with('program')->paginate(10);
-        return view('indikator_program.index', compact('indikatorPrograms'));
+        $indikatorProgram = IndikatorProgram::with(
+            'program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
+        )
+            ->orderByDesc('id_indikator_program')
+            ->paginate(10);
+
+        return view(
+            'indikator-program.index',
+            compact('indikatorProgram')
+        );
     }
 
-    public function create(Request $request)
+    public function create()
     {
-        $programs = Program::all();
-        $aspekOptions = $this->aspekOptions;
+        $program = Program::with(
+            'indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
+        )
+            ->orderByDesc('id_program')
+            ->get();
 
-        $users = User::all();
-
-        $program = null;
-        $kpi = null;
-
-        if ($request->id_program) {
-            $program = Program::with('sasaranProgram.kpi')
-                ->findOrFail($request->id_program);
-
-            $kpi = $program->sasaranProgram->kpi;
-        }
-
-        return view('indikator_program.create', compact(
-            'programs',
-            'aspekOptions',
-            'users',
-            'program',
-            'kpi'
-        ));
+        return view(
+            'indikator-program.create',
+            compact('program')
+        );
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_program' => 'required|exists:program,id_program',
-            'nama_indikator' => 'required|string|max:255',
-            'target' => 'nullable|string|max:100',
-            'aspek' => 'nullable|in:' . implode(',', $this->aspekOptions),
-            'periode_pengukuran' => 'nullable|string|max:100',
-            'upaya' => 'nullable|string|max:255',
-            'due_date' => 'nullable|date',
+            'id_program' => [
+                'required',
+                'exists:program,id_program',
+            ],
+
+            'nama_indikator_program' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'target_manager' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'aspek' => [
+                'required',
+                Rule::in(['kualitas', 'kuantitas']),
+            ],
+
+            'periode_pengukuran' => [
+                'required',
+                Rule::in([
+                    'triwulan',
+                    'semester',
+                    'tahunan',
+                ]),
+            ],
         ]);
 
-        $indikatorProgram = IndikatorProgram::create($validated);
+        IndikatorProgram::create($validated);
 
-        return redirect()->route('kpi.show',
-        $indikatorProgram->program->sasaranProgram->id_kpi)->with('success', 'Indikator Program berhasil ditambahkan.');
+        return redirect()
+            ->route('indikator-program.index')
+            ->with('success', 'Indikator program berhasil ditambahkan.');
+    }
+
+    public function show(IndikatorProgram $indikatorProgram)
+    {
+        $indikatorProgram->load([
+            'program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun',
+            'kegiatan',
+            'picUnit',
+        ]);
+
+        return view(
+            'indikator-program.show',
+            compact('indikatorProgram')
+        );
     }
 
     public function edit(IndikatorProgram $indikatorProgram)
     {
-        $programs = Program::all();
-        $users = User::all();
-        $aspekOptions = $this->aspekOptions;
+        $program = Program::with(
+            'indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
+        )->get();
 
-        $kpi = $indikatorProgram
-            ->program
-            ->sasaranProgram
-            ->kpi;
-
-        $selectedPicIds = $indikatorProgram
-            ->picIndikator
-            ->pluck('id_user')
-            ->toArray();
-
-        return view('indikator_program.edit', compact(
-            'indikatorProgram',
-            'programs',
-            'users',
-            'aspekOptions',
-            'kpi',
-            'selectedPicIds'
-        ));
+        return view(
+            'indikator-program.edit',
+            compact('indikatorProgram', 'program')
+        );
     }
 
-    public function update(Request $request, IndikatorProgram $indikatorProgram)
-    {
+    public function update(
+        Request $request,
+        IndikatorProgram $indikatorProgram
+    ) {
         $validated = $request->validate([
-            'id_program' => 'required|exists:program,id_program',
-            'nama_indikator' => 'required|string|max:255',
-            'target' => 'nullable|string|max:255',
-            'aspek' => 'nullable|string|max:255',
-            'periode_pengukuran' => 'nullable|string|max:255',
-            'upaya' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'id_user' => 'required|array',
-            'id_user.*' => 'distinct|exists:users,id_user',
+            'id_program' => [
+                'required',
+                'exists:program,id_program',
+            ],
+
+            'nama_indikator_program' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'target_manager' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'aspek' => [
+                'required',
+                Rule::in(['kualitas', 'kuantitas']),
+            ],
+
+            'periode_pengukuran' => [
+                'required',
+                Rule::in([
+                    'triwulan',
+                    'semester',
+                    'tahunan',
+                ]),
+            ],
         ]);
 
-        // Update data indikator
-        $indikatorProgram->update([
-            'id_program' => $validated['id_program'],
-            'nama_indikator' => $validated['nama_indikator'],
-            'target' => $validated['target'] ?? null,
-            'aspek' => $validated['aspek'] ?? null,
-            'periode_pengukuran' => $validated['periode_pengukuran'] ?? null,
-            'upaya' => $validated['upaya'] ?? null,
-            'due_date' => $validated['due_date'] ?? null,
-        ]);
-
-        // Hapus PIC lama
-        $indikatorProgram->picIndikator()->delete();
-
-        // Simpan PIC baru
-        foreach ($validated['id_user'] as $id_user) {
-            $indikatorProgram->picIndikator()->create([
-                'id_user' => $id_user,
-            ]);
-        }
+        $indikatorProgram->update($validated);
 
         return redirect()
-            ->route(
-                'kpi.show',
-                $indikatorProgram->program->sasaranProgram->id_kpi
-            )
-            ->with(
-                'success',
-                'Indikator Program berhasil diperbarui.'
-            );
+            ->route('indikator-program.index')
+            ->with('success', 'Indikator program berhasil diperbarui.');
     }
 
     public function destroy(IndikatorProgram $indikatorProgram)
     {
         $indikatorProgram->delete();
-        return redirect()->route('indikator-program.index')->with('success', 'Indikator Program berhasil dihapus.');
+
+        return redirect()
+            ->route('indikator-program.index')
+            ->with('success', 'Indikator program berhasil dihapus.');
+    }
+
+    public function kegiatan(IndikatorProgram $indikatorProgram)
+    {
+        $indikatorProgram->load([
+            'program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun',
+            'kegiatan.indikatorKegiatan.subKegiatan.indikatorSubKegiatan',
+        ]);
+
+        return view(
+            'indikator-program.kegiatan',
+            compact('indikatorProgram')
+        );
     }
 }

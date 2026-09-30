@@ -3,56 +3,116 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
-use App\Models\SasaranProgram;
+use App\Models\IndikatorInisiatif;
 use Illuminate\Http\Request;
 
 class ProgramController extends Controller
 {
     public function index()
     {
-        $programs = Program::with('sasaranProgram')->paginate(10);
-        return view('program.index', compact('programs'));
+        $program = Program::with(
+            'indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
+        )
+            ->orderByDesc('id_program')
+            ->paginate(10);
+
+        return view(
+            'program.index',
+            compact('program')
+        );
     }
 
     public function create()
     {
-        $sasaranPrograms = SasaranProgram::all();
-        return view('program.create', compact('sasaranPrograms'));
+        $indikatorInisiatif = IndikatorInisiatif::with(
+            'sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
+        )
+            ->orderByDesc('id_indikator_inisiatif')
+            ->get();
+
+        return view(
+            'program.create',
+            compact('indikatorInisiatif')
+        );
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_sasaran' => 'required|exists:sasaran_program,id_sasaran',
-            'nama_program' => 'required|string|max:255',
+            'id_indikator_inisiatif' => [
+                'required',
+                'exists:indikator_inisiatif,id_indikator_inisiatif',
+            ],
+
+            'nama_program' => [
+                'required',
+                'string',
+                'max:255',
+            ],
         ]);
 
         Program::create($validated);
 
-        return redirect()->route('kpi.show')->with('success', 'Program berhasil ditambahkan.');
+        return redirect()
+            ->route('program.index')
+            ->with('success', 'Program berhasil ditambahkan.');
+    }
+
+    public function show(Program $program)
+    {
+        $program->load([
+            'indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun',
+            'indikatorProgram',
+        ]);
+
+        return view(
+            'program.show',
+            compact('program')
+        );
     }
 
     public function edit(Program $program)
     {
-        $sasaranPrograms = SasaranProgram::all();
-        return view('program.edit', compact('program', 'sasaranPrograms'));
+        $indikatorInisiatif = IndikatorInisiatif::with(
+            'sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
+        )->get();
+
+        return view(
+            'program.edit',
+            compact('program', 'indikatorInisiatif')
+        );
     }
 
-    public function update(Request $request, Program $program)
-    {
+    public function update(
+        Request $request,
+        Program $program
+    ) {
         $validated = $request->validate([
-            'id_sasaran' => 'required|exists:sasaran_program,id_sasaran',
-            'nama_program' => 'required|string|max:255',
+            'id_indikator_inisiatif' => [
+                'required',
+                'exists:indikator_inisiatif,id_indikator_inisiatif',
+            ],
+
+            'nama_program' => [
+                'required',
+                'string',
+                'max:255',
+            ],
         ]);
 
         $program->update($validated);
 
-        return redirect()->route('kpi.show', $program->id_sasaran)->with('success', 'Program berhasil diperbarui.');
+        return redirect()
+            ->route('program.index')
+            ->with('success', 'Program berhasil diperbarui.');
     }
 
     public function destroy(Program $program)
     {
         $program->delete();
-        return redirect()->route('program.index')->with('success', 'Program berhasil dihapus.');
+
+        return redirect()
+            ->route('program.index')
+            ->with('success', 'Program berhasil dihapus.');
     }
 }

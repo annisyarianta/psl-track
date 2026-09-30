@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -11,14 +12,18 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('nama')->get();
+        $users = User::with('unit')
+            ->orderBy('nama')
+            ->paginate(10);
 
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('users.create');
+        $units = Unit::orderBy('nama_unit')->get();
+
+        return view('users.create', compact('units'));
     }
 
     public function store(Request $request)
@@ -28,7 +33,8 @@ class UserController extends Controller
 
             'nopeg' => [
                 'required',
-                'regex:/^[0-9]{1,4}$/',
+                'string',
+                'max:4',
                 'unique:users,nopeg',
             ],
 
@@ -39,42 +45,52 @@ class UserController extends Controller
                 'unique:users,email',
             ],
 
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+
             'role' => [
                 'required',
                 Rule::in(['manager', 'asmen', 'staff']),
             ],
 
-            'unit' => [
+            'id_unit' => [
                 'nullable',
-                Rule::in([
-                    'perencanaan',
-                    'evaluasi',
-                    'inovasi',
-                ]),
+                'exists:unit,id_unit',
             ],
         ]);
 
-        User::create([
-            'nama' => $validated['nama'],
-            'nopeg' => $validated['nopeg'],
-            'email' => $validated['email'],
-            'password' => Hash::make('12345678'),
-            'role' => $validated['role'],
-            'unit' => $validated['unit'] ?? null,
-            'must_change_password' => true,
-        ]);
+        $validated['password'] = Hash::make($validated['password']);
+
+        // User baru wajib mengganti password pada login pertama
+        $validated['must_change_password'] = true;
+
+        User::create($validated);
 
         return redirect()
             ->route('users.index')
             ->with('success', 'User berhasil ditambahkan.');
     }
 
+    public function show(User $user)
+    {
+        $user->load([
+            'unit',
+            'picStaff',
+        ]);
+
+        return view('users.show', compact('user'));
+    }
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
-    }
+        $units = Unit::orderBy('nama_unit')->get();
 
+        return view('users.edit', compact('user', 'units'));
+    }
 
     public function update(Request $request, User $user)
     {
@@ -83,7 +99,8 @@ class UserController extends Controller
 
             'nopeg' => [
                 'required',
-                'regex:/^[0-9]{1,4}$/',
+                'string',
+                'max:4',
                 Rule::unique('users', 'nopeg')
                     ->ignore($user->id_user, 'id_user'),
             ],
@@ -101,52 +118,42 @@ class UserController extends Controller
                 Rule::in(['manager', 'asmen', 'staff']),
             ],
 
-            'unit' => [
+            'id_unit' => [
                 'nullable',
-                Rule::in([
-                    'perencanaan',
-                    'evaluasi',
-                    'inovasi',
-                ]),
+                'exists:unit,id_unit',
+            ],
+
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
             ],
         ]);
 
-        $user->update([
-            'nama' => $validated['nama'],
-            'nopeg' => $validated['nopeg'],
-            'email' => $validated['email'],
-            'role' => $validated['role'],
-            'unit' => $validated['unit'] ?? null,
-        ]);
+        /*
+         * Password hanya diubah jika field password diisi.
+         */
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+            $validated['must_change_password'] = true;
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
 
         return redirect()
             ->route('users.index')
-            ->with('success', 'User berhasil diperbarui.');
+            ->with('success', 'Data user berhasil diperbarui.');
     }
 
-    /**
- * Hapus user
- */
-public function destroy(User $user)
-{
-    if (auth()->id() === $user->id_user) {
-        return redirect()
-            ->route('users.index')
-            ->with('error', 'Anda tidak dapat menghapus akun sendiri.');
-    }
-
-    try {
+    public function destroy(User $user)
+    {
         $user->delete();
 
         return redirect()
             ->route('users.index')
             ->with('success', 'User berhasil dihapus.');
-
-    } catch (\Exception $e) {
-
-        return redirect()
-            ->route('users.index')
-            ->with('error', 'User gagal dihapus.');
     }
-}
 }
