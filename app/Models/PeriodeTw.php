@@ -26,7 +26,7 @@ class PeriodeTw extends Model
         );
     }
 
-    public function monitoring()
+    public function monitorings()
     {
         return $this->hasMany(
             Monitoring::class,

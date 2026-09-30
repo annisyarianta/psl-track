@@ -118,7 +118,7 @@ Route::middleware([
         '/indikator-sub-kegiatan/{id_indikator_sub_kegiatan}/monitoring',
         [IndikatorSubKegiatanController::class, 'monitoring']
     )->name('indikator-sub-kegiatan.monitoring');
-    
+
 
     Route::resource('tahun', TahunController::class);
     Route::resource('unit', UnitController::class);
@@ -136,6 +136,12 @@ Route::middleware([
     Route::resource('periode-tw', PeriodeTwController::class);
     Route::resource('pic-unit', PicUnitController::class);
     Route::resource('pic-staff', PicStaffController::class);
-    Route::resource('monitoring', MonitoringController::class);
+    Route::resource('monitoring', MonitoringController::class)
+        ->only([
+            'index',
+            'show',
+            'edit',
+            'update',
+        ]);
     Route::resource('file-pelaporan', FilePelaporanController::class);
 });

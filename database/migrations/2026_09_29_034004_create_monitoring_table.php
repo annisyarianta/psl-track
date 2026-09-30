@@ -14,8 +14,8 @@ return new class extends Migration
             $table->unsignedBigInteger('id_periode_tw');
             $table->unsignedBigInteger('id_indikator_sub_kegiatan');
 
-            $table->string('upaya', 255);
-            $table->string('capaian', 255);
+            $table->string('upaya', 255)->nullable();
+            $table->string('capaian', 255)->nullable();
 
             $table->string('keterangan', 255)->nullable();
             $table->string('identifikasi', 255)->nullable();
@@ -40,6 +40,11 @@ return new class extends Migration
             $table->foreign('last_updated_by')
                 ->references('id_user')
                 ->on('users');
+
+            $table->unique([
+                'id_periode_tw',
+                'id_indikator_sub_kegiatan'
+            ]);
         });
     }
 

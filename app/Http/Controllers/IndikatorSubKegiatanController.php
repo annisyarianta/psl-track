@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\IndikatorSubKegiatan;
 use App\Models\SubKegiatan;
+use App\Models\Monitoring;
+use App\Models\PeriodeTw;
 use Illuminate\Http\Request;
 
 class IndikatorSubKegiatanController extends Controller
@@ -57,13 +59,42 @@ class IndikatorSubKegiatanController extends Controller
             ],
         ]);
 
-        IndikatorSubKegiatan::create($validated);
+        $indikatorSubKegiatan = IndikatorSubKegiatan::create($validated);
+
+        $indikatorSubKegiatan->load(
+            'subKegiatan.indikatorKegiatan.kegiatan.indikatorProgram.program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
+        );
+
+        $tahun = $indikatorSubKegiatan
+            ->subKegiatan
+            ->indikatorKegiatan
+            ->kegiatan
+            ->indikatorProgram
+            ->program
+            ->indikatorInisiatif
+            ->sasaranInisiatif
+            ->indikatorKpi
+            ->sasaranStrategis
+            ->tahun;
+
+        $periodeTws = PeriodeTw::where(
+            'id_tahun',
+            $tahun->id_tahun
+        )->get();
+
+        foreach ($periodeTws as $periodeTw) {
+            Monitoring::create([
+                'id_periode_tw' => $periodeTw->id_periode_tw,
+                'id_indikator_sub_kegiatan' => $indikatorSubKegiatan->id_indikator_sub_kegiatan,
+                'status' => 'notstarted',
+            ]);
+        }
 
         return redirect()
             ->route('indikator-sub-kegiatan.index')
             ->with(
                 'success',
-                'Indikator sub kegiatan berhasil ditambahkan.'
+                'Indikator sub kegiatan dan monitoring berhasil dibuat.'
             );
     }
 

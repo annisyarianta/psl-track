@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tahun;
+use App\Models\PeriodeTw;
 use Illuminate\Http\Request;
 
 class TahunController extends Controller
@@ -22,14 +23,28 @@ class TahunController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tahun' => ['required', 'integer', 'min:2000', 'max:2100'],
+            'tahun' => [
+                'required',
+                'integer',
+                'min:2000',
+                'max:2100',
+                'unique:tahun,tahun',
+            ],
         ]);
 
-        Tahun::create($validated);
+        $tahun = Tahun::create($validated);
+
+        // Otomatis membuat Triwulan I - IV
+        for ($i = 1; $i <= 4; $i++) {
+            PeriodeTw::create([
+                'id_tahun' => $tahun->id_tahun,
+                'triwulan' => $i,
+            ]);
+        }
 
         return redirect()
             ->route('tahun.index')
-            ->with('success', 'Data tahun berhasil ditambahkan.');
+            ->with('success', 'Tahun dan periode triwulan berhasil ditambahkan.');
     }
 
     public function show(Tahun $tahun)
