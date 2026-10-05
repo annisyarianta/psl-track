@@ -10,7 +10,7 @@
             alertify.success(@json(session('success')));
         </script>
     @endif
-    
+
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">
@@ -25,7 +25,7 @@
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
                                     <li class="breadcrumb-item">
-                                        <a href="javascript: void(0);">Settings</a>
+                                        <a href="javascript: void(0);">Master Data</a>
                                     </li>
                                     <li class="breadcrumb-item">
                                         <a href="{{ route('users.index') }}">User Management</a>
@@ -89,21 +89,15 @@
                                         <div class="col-sm-10">
                                             <select class="form-select" id="unit-input" name="unit">
                                                 <option value=""
-                                                    {{ old('unit', $user->unit) == null ? 'selected' : '' }}>-- Pilih Unit
-                                                    --
+                                                    {{ old('unit', $user->unit) == null ? 'selected' : '' }}>
+                                                    -- Pilih Unit --
                                                 </option>
-                                                <option value="perencanaan"
-                                                    {{ old('unit', $user->unit) == 'perencanaan' ? 'selected' : '' }}>
-                                                    Perencanaan Strategi Bisnis dan Pemasaran
-                                                </option>
-                                                <option value="inovasi"
-                                                    {{ old('unit', $user->unit) == 'inovasi' ? 'selected' : '' }}>
-                                                    Inovasi Layanan dan Pengembangan Usaha
-                                                </option>
-                                                <option value="evaluasi"
-                                                    {{ old('unit', $user->unit) == 'evaluasi' ? 'selected' : '' }}>
-                                                    Evaluasi Strategi Bisnis dan Pemasaran
-                                                </option>
+                                                @foreach ($units as $unit)
+                                                    <option value="{{ $unit->id_unit }}"
+                                                        {{ old('unit', $user->unit) == $unit->id_unit ? 'selected' : '' }}>
+                                                        {{ $unit->nama_unit }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>

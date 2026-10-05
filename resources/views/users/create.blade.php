@@ -24,7 +24,7 @@
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
                                     <li class="breadcrumb-item">
-                                        <a href="javascript: void(0);">Settings</a>
+                                        <a href="javascript: void(0);">Master Data</a>
                                     </li>
                                     <li class="breadcrumb-item">
                                         <a href="{{ route('users.index') }}">User Management</a>
@@ -86,16 +86,12 @@
                                                 <option value="" disabled selected>
                                                     -- Pilih Unit --
                                                 </option>
-                                                <option value="perencanaan"
-                                                    {{ old('unit') == 'perencanaan' ? 'selected' : '' }}>
-                                                    Perencanaan Strategi Bisnis dan Pemasaran
-                                                </option>
-                                                <option value="inovasi" {{ old('unit') == 'inovasi' ? 'selected' : '' }}>
-                                                    Inovasi Layanan dan Pengembangan Usaha
-                                                </option>
-                                                <option value="evaluasi" {{ old('unit') == 'evaluasi' ? 'selected' : '' }}>
-                                                    Evaluasi Strategi Bisnis dan Pemasaran
-                                                </option>
+                                                @foreach ($units as $unit)
+                                                    <option value="{{ $unit->id_unit }}"
+                                                        {{ old('unit') == $unit->id_unit ? 'selected' : '' }}>
+                                                        {{ $unit->nama_unit }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>

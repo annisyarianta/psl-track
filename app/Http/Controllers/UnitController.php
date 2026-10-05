@@ -9,10 +9,7 @@ class UnitController extends Controller
 {
     public function index()
     {
-        $units = Unit::withCount('users')
-            ->orderBy('nama_unit')
-            ->get();
-
+        $units = Unit::orderBy('id_unit')->get();
         return view('unit.index', compact('units'));
     }
 

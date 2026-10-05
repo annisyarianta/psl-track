@@ -31,7 +31,7 @@
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
                                     <li class="breadcrumb-item">
-                                        <a href="javascript: void(0);">Settings</a>
+                                        <a href="javascript: void(0);">Master Unit</a>
                                     </li>
                                     <li class="breadcrumb-item active">
                                         <a href="{{ route('users.index') }}">User Management</a>
