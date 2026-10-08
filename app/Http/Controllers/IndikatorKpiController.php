@@ -15,7 +15,7 @@ class IndikatorKpiController extends Controller
             ->paginate(10);
 
         return view(
-            'indikator-kpi.index',
+            'indikator_kpi.index',
             compact('indikatorKpi')
         );
     }
@@ -40,7 +40,7 @@ class IndikatorKpiController extends Controller
                 'exists:sasaran_strategis,id_sasaran_strategis',
             ],
 
-            'target_dirbag' => [
+            'target_dirut' => [
                 'nullable',
                 'string',
                 'max:255',
@@ -56,7 +56,7 @@ class IndikatorKpiController extends Controller
         IndikatorKpi::create($validated);
 
         return redirect()
-            ->route('indikator-kpi.index')
+            ->route('sasaran-strategis.index')
             ->with('success', 'Indikator KPI berhasil ditambahkan.');
     }
 
@@ -95,7 +95,7 @@ class IndikatorKpiController extends Controller
                 'exists:sasaran_strategis,id_sasaran_strategis',
             ],
 
-            'target_dirbag' => [
+            'target_dirut' => [
                 'nullable',
                 'string',
                 'max:255',
@@ -111,7 +111,7 @@ class IndikatorKpiController extends Controller
         $indikatorKpi->update($validated);
 
         return redirect()
-            ->route('indikator-kpi.index')
+            ->route('sasaran-strategis.index')
             ->with('success', 'Indikator KPI berhasil diperbarui.');
     }
 
@@ -120,7 +120,7 @@ class IndikatorKpiController extends Controller
         $indikatorKpi->delete();
 
         return redirect()
-            ->route('indikator-kpi.index')
+            ->route('sasaran-strategis.index')
             ->with('success', 'Indikator KPI berhasil dihapus.');
     }
 

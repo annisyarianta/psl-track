@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    KPI | PSL Track
+    KPI Tracker | PSL Track
 @endsection
 
 @section('content')
@@ -34,7 +34,7 @@
                                         <a href="javascript: void(0);">Tracker</a>
                                     </li>
                                     <li class="breadcrumb-item active">
-                                        <a href="{{ route('kpi.index') }}">KPI Tracker</a>
+                                        <a href="{{ route('tahun.index') }}">KPI Tracker</a>
                                     </li>
                                 </ol>
                             </div>
@@ -47,7 +47,7 @@
                         <div class="card-header d-flex justify-content-end mb-4">
                             <button type="button" class="btn btn-primary waves-effect btn-label waves-light"
                                 data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                                <i class="bx bx-plus label-icon"></i>Tambah KPI
+                                <i class="bx bx-plus label-icon"></i>Tambah Tahun
                             </button>
                         </div>
                         {{-- modal tambah KPI --}}
@@ -57,12 +57,12 @@
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title" id="staticBackdropLabel">
-                                            Tambah KPI Baru
+                                            Tambah Tahun Baru
                                         </h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
-                                    <form action="{{ route('kpi.store') }}" method="POST">
+                                    <form action="{{ route('tahun.store') }}" method="POST">
                                         @csrf
                                         <div class="modal-body">
                                             <div class="row mb-4">
@@ -70,13 +70,6 @@
                                                 <div class="col-sm-9">
                                                     <input type="number" class="form-control" id="tahun" name="tahun"
                                                         value="{{ old('tahun') }}" required />
-                                                </div>
-                                            </div>
-                                            <div class="row mb-2">
-                                                <label for="judul_kpi" class="col-sm-3 col-form-label">Judul KPI <span class="text-danger">*</span></label>
-                                                <div class="col-sm-9">
-                                                    <input type="text" class="form-control" id="judul_kpi" name="judul_kpi"
-                                                        value="{{ old('judul_kpi') }}" required />
                                                 </div>
                                             </div>
                                         </div>
@@ -95,20 +88,20 @@
                         </div>
                         {{-- end modal --}}
                         <div class="row">
-                            @foreach ($kpis as $kpi)
+                            @foreach ($tahun as $year)
                                 <div class="col-sm-6 col-lg-4">
                                     <div class="card bg-sublte-info border-info-subtle">
                                         <div class="card-body">
-                                            <h5 class="card-title">{{ $kpi->tahun }}</h5>
-                                            <p class="card-text">{{ $kpi->judul_kpi }}
-                                            </p>
+                                            <h5 class="card-title">{{ $year->tahun }}</h5>
+                                            {{-- <p class="card-text">{{ $kpi->judul_kpi }}
+                                            </p> --}}
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <p class="card-text mb-0">
                                                     <small class="text-muted">Last updated by Dilla Anggraeni, S.T.,
                                                         M.T</small>
                                                 </p>
 
-                                                <a href="{{ route('kpi.show', $kpi->id_kpi) }}" class="card-link">
+                                                <a href="{{ route('tahun.show', $year->id_tahun) }}" class="card-link">
                                                     Detail >>
                                                 </a>
                                             </div>
@@ -122,5 +115,5 @@
             </div>
         </div>
     </div>
-    {{ $kpis->links() }}
+    {{-- {{ $tahun->links() }} --}}
 @endsection

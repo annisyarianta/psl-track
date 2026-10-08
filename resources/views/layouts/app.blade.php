@@ -12,7 +12,8 @@
         type="text/css" />
     <link href="{{ asset('assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- choices css -->
-    <link href="{{ asset('assets/libs/choices.js/public/assets/styles/choices.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('assets/libs/choices.js/public/assets/styles/choices.min.css') }}" rel="stylesheet"
+        type="text/css" />
     <!-- alertifyjs Css -->
     <link href="{{ asset('assets/libs/alertifyjs/build/css/alertify.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- alertifyjs default themes  Css -->
@@ -50,11 +51,11 @@
                     <div class="navbar-brand-box">
                         <a href="#" class="logo logo-dark">
                             <span class="logo-sm">
-                                <img src="{{ asset('assets/images/logo_litbang.png') }}" alt=""
+                                <img src="{{ asset('assets/images/logo-kemenkes.png') }}" alt=""
                                     height="35" />
                             </span>
                             <span class="logo-lg">
-                                <img src="{{ asset('assets/images/logo_litbang.png') }}" alt=""
+                                <img src="{{ asset('assets/images/logo-kemenkes.png') }}" alt=""
                                     height="35" />
                                 <span class="logo-txt">PSL Track</span>
                             </span>
@@ -74,7 +75,7 @@
                                 aria-expanded="false">
                                 <img class="rounded-circle header-profile-user"
                                     src="{{ asset('assets/images/users/admin.jpg') }}" alt="Header Avatar" />
-                                <span class="d-none d-xl-inline-block ms-1 fw-medium">{{ auth()->user()->role }}</span>
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium">{{ auth()->user()->nama }}</span>
                                 <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
@@ -104,7 +105,7 @@
                     <ul class="metismenu list-unstyled" id="side-menu">
                         <li>
                             <a href="{{ route('dashboard') }}">
-                                <i data-feather="home"></i>
+                                <i class="bx bx-line-chart"></i>
                                 <span>Dashboard</span>
                             </a>
                         </li>
@@ -114,23 +115,36 @@
                         </li>
 
                         <li>
-                            <a href="{{ route('kpi.index') }}">
-                                <i class='bx bx-bulb'></i>
-                                <span>KPI Tracker</span>
+                            <a href="javascript: void(0);" class="has-arrow">
+                                <i class="bx bx-notepad"></i>
+                                <span data-key="t-multi-level">KPI Tracker</span>
                             </a>
+                            <ul class="sub-menu" aria-expanded="true">
+                                <li><a href="{{ route('sasaran-strategis.index') }}" data-key="t-level-1-1">Dir.
+                                        Utama</a></li>
+                                <li><a href="javascript: void(0);" data-key="t-level-1-1">Dir. Bagian</a></li>
+                                <li><a href="javascript: void(0);" data-key="t-level-1-1">Manager</a></li>
+                                <li><a href="javascript: void(0);" data-key="t-level-1-1">Ass. Manager</a></li>
+                                <li><a href="javascript: void(0);" data-key="t-level-1-1">Staff</a></li>
+                            </ul>
                         </li>
 
                         <li>
                             <a href="#">
-                                <i data-feather="user-check"></i>
+                                <i class="bx bx-task"></i>
                                 <span>Task Tracker</span>
                             </a>
                         </li>
 
                         <li class="menu-title">
-                            Settings
+                            Master Data
                         </li>
-
+                        <li>
+                            <a href="{{ route('unit.index') }}">
+                                <i class="bx bx-sitemap"></i>
+                                <span>Master Unit</span>
+                            </a>
+                        </li>
                         <li>
                             <a href="{{ route('users.index') }}">
                                 <i data-feather="users"></i>

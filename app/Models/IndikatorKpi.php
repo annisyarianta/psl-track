@@ -14,7 +14,7 @@ class IndikatorKpi extends Model
 
     protected $fillable = [
         'id_sasaran_strategis',
-        'target_dirbag',
+        'target_dirut',
         'nama_indikator_kpi',
     ];
 

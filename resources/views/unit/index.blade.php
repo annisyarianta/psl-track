@@ -137,7 +137,7 @@
                                                                             <div class="row mb-2">
                                                                                 <label for="nama_unit"
                                                                                     class="col-sm-3 col-form-label">Nama
-                                                                                    Unit</label>
+                                                                                    Unit <span class="text-danger">*</span></label>
                                                                                 <div class="col-sm-9">
                                                                                     <input type="text"
                                                                                         class="form-control"
@@ -163,7 +163,7 @@
                                                             </div>
                                                         </div>
                                                         <form action="{{ route('unit.destroy', $unit->id_unit) }}"
-                                                            method="POST" class="form-delete-unit"
+                                                            method="POST" class="delete-unit"
                                                             style="display: inline-block;">
                                                             @csrf
                                                             @method('DELETE')
@@ -188,7 +188,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteForms = document.querySelectorAll('.form-delete-unit');
+            const deleteForms = document.querySelectorAll('.delete-unit');
             deleteForms.forEach(function(form) {
                 form.addEventListener('submit', function(event) {
                     event.preventDefault();

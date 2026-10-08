@@ -10,13 +10,21 @@ class SasaranStrategisController extends Controller
 {
     public function index()
     {
-        $sasaranStrategis = SasaranStrategis::with('tahun')
-            ->orderByDesc('id_sasaran_strategis')
+        $sasaranStrategis = SasaranStrategis::with([
+            'tahun',
+            'indikatorKpi' => fn($q) => $q->withCount('sasaranInisiatif'),
+        ])
+            ->withCount('indikatorKpi')
+            ->orderBy('id_sasaran_strategis')
             ->paginate(10);
 
+        $tahunList = Tahun::where('tahun', '<=', now()->year)
+            ->orderByDesc('tahun')
+            ->get();
+
         return view(
-            'sasaran-strategis.index',
-            compact('sasaranStrategis')
+            'sasaran_strategis.index',
+            compact('sasaranStrategis', 'tahunList')
         );
     }
 
@@ -75,33 +83,23 @@ class SasaranStrategisController extends Controller
         );
     }
 
-    public function update(
-        Request $request,
-        SasaranStrategis $sasaranStrategis
-    ) {
+    public function update(Request $request, $id)
+    {
         $validated = $request->validate([
-            'id_tahun' => [
-                'required',
-                'exists:tahun,id_tahun',
-            ],
-
-            'nama_sasaran_strategis' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+            'id_tahun' => 'required|exists:tahun,id_tahun',
+            'nama_sasaran_strategis' => 'required|string',
         ]);
 
-        $sasaranStrategis->update($validated);
+        $sasaran = SasaranStrategis::findOrFail($id);
+        $sasaran->update($validated);
 
-        return redirect()
-            ->route('sasaran-strategis.index')
+        return redirect()->route('sasaran-strategis.index')
             ->with('success', 'Sasaran strategis berhasil diperbarui.');
     }
 
-    public function destroy(SasaranStrategis $sasaranStrategis)
+    public function destroy(SasaranStrategis $sasaranStrategi)
     {
-        $sasaranStrategis->delete();
+        $sasaranStrategi->delete();
 
         return redirect()
             ->route('sasaran-strategis.index')

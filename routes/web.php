@@ -82,6 +82,16 @@ Route::middleware('auth')->group(function () {
 });
 
 
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})
+    ->middleware([
+        'auth',
+        'force.password.change'
+    ])
+    ->name('dashboard');
+
+
 Route::middleware([
     'auth',
     'force.password.change'
