@@ -60,7 +60,7 @@ class IndikatorInisiatifController extends Controller
         IndikatorInisiatif::create($validated);
 
         return redirect()
-            ->route('indikator-inisiatif.index')
+            ->route('sasaran-inisiatif.index')
             ->with('success', 'Indikator inisiatif berhasil ditambahkan.');
     }
 
@@ -89,42 +89,32 @@ class IndikatorInisiatifController extends Controller
         );
     }
 
-    public function update(
-        Request $request,
-        IndikatorInisiatif $indikatorInisiatif
-    ) {
+    public function update(Request $request, $id)
+    {
         $validated = $request->validate([
-            'id_sasaran_inisiatif' => [
-                'required',
-                'exists:sasaran_inisiatif,id_sasaran_inisiatif',
-            ],
-
-            'target_dirbag' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'nama_indikator_inisiatif' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+            'nama_indikator_inisiatif' => ['required', 'string', 'max:255'],
+            'target_dirbag'            => ['nullable', 'string', 'max:255'],
         ]);
 
-        $indikatorInisiatif->update($validated);
+        IndikatorInisiatif::findOrFail($id)->update($validated);
 
         return redirect()
-            ->route('indikator-inisiatif.index')
+            ->route('sasaran-inisiatif.index')
             ->with('success', 'Indikator inisiatif berhasil diperbarui.');
     }
 
     public function destroy(IndikatorInisiatif $indikatorInisiatif)
     {
+        if ($indikatorInisiatif->programs()->exists()) {
+            return redirect()
+                ->route('sasaran-inisiatif.index')
+                ->with('error_hapus', 'Indikator inisiatif tidak dapat dihapus karena masih memiliki program turunan.');
+        }
+
         $indikatorInisiatif->delete();
 
         return redirect()
-            ->route('indikator-inisiatif.index')
+            ->route('sasaran-inisiatif.index')
             ->with('success', 'Indikator inisiatif berhasil dihapus.');
     }
 }

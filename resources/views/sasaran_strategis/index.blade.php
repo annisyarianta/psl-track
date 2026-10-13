@@ -17,6 +17,20 @@
         </script>
     @endif
 
+    @if (session('error_hapus'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                Swal.fire({
+                    title: 'Data tidak dapat dihapus',
+                    text: @json(session('error_hapus')),
+                    icon: 'error',
+                    confirmButtonColor: '#5156be',
+                    confirmButtonText: 'OK',
+                });
+            });
+        </script>
+    @endif
+
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">
@@ -80,7 +94,7 @@
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-sm flex-shrink-0 me-3">
                                                     <div
-                                                        class="avatar-title rounded bg-primary-subtle text-primary fw-semibold">
+                                                        class="avatar-title rounded bg-primary text-white fw-semibold">
                                                         {{ str_pad(($sasaranStrategis->firstItem() ?? 1) + $index, 2, '0', STR_PAD_LEFT) }}
                                                     </div>
                                                 </div>
@@ -510,14 +524,13 @@
 
                 Swal.fire({
                     title: 'Hapus data?',
-                    text: 'Menghapus data ini juga dapat menghapus data turunan di dalamnya. Data yang telah dihapus tidak dapat dikembalikan.',
+                    text: 'Data yang sudah dihapus tidak dapat dikembalikan. Data yang masih memiliki data turunan tidak dapat dihapus.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#2ab57d',
                     cancelButtonColor: '#fd625e',
                     confirmButtonText: 'Ya, hapus!',
                     cancelButtonText: 'Batal',
-                    reverseButtons: true
                 }).then(function(result) {
                     if (result.isConfirmed) {
                         const form = document.getElementById('formHapusIndikator');
@@ -542,14 +555,13 @@
                     event.preventDefault();
                     Swal.fire({
                         title: 'Hapus data?',
-                        text: 'Menghapus data ini juga dapat menghapus data turunan di dalamnya. Data yang telah dihapus tidak dapat dikembalikan.',
+                        text: 'Data yang sudah dihapus tidak dapat dikembalikan. Data yang masih memiliki data turunan tidak dapat dihapus.',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#2ab57d',
                         cancelButtonColor: '#fd625e',
                         confirmButtonText: 'Ya, hapus!',
                         cancelButtonText: 'Batal',
-                        reverseButtons: true
                     }).then(function(result) {
                         if (result.isConfirmed) {
                             form.submit();

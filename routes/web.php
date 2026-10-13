@@ -105,6 +105,10 @@ Route::middleware([
         [SasaranInisiatifController::class, 'indikator']
     )->name('sasaran-inisiatif.indikator');
     Route::get(
+        '/indikator-kpi/{id_indikator_kpi}/sasaran-inisiatif',
+        [SasaranInisiatifController::class, 'byKpi']
+    )->name('sasaran-inisiatif.by-kpi');
+    Route::get(
         '/indikator-inisiatif/{id_indikator_inisiatif}/program',
         [IndikatorInisiatifController::class, 'program']
     )->name('indikator-inisiatif.program');

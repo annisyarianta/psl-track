@@ -99,6 +99,12 @@ class SasaranStrategisController extends Controller
 
     public function destroy(SasaranStrategis $sasaranStrategi)
     {
+        if ($sasaranStrategi->indikatorKpi()->exists()) {
+            return redirect()
+                ->route('sasaran-strategis.index')
+                ->with('error_hapus', 'Sasaran strategis tidak dapat dihapus karena masih memiliki indikator KPI turunan.');
+        }
+
         $sasaranStrategi->delete();
 
         return redirect()

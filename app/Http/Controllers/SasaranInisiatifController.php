@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SasaranInisiatif;
+use App\Models\SasaranStrategis;
 use App\Models\IndikatorKpi;
 use Illuminate\Http\Request;
 
@@ -10,6 +11,11 @@ class SasaranInisiatifController extends Controller
 {
     public function index()
     {
+        $sasaranStrategis = SasaranStrategis::with([
+            'indikatorKpi' => function ($query) {
+                $query->withCount('sasaranInisiatif');
+            }
+        ])->get();
         $sasaranInisiatif = SasaranInisiatif::with(
             'indikatorKpi.sasaranStrategis.tahun'
         )
@@ -17,9 +23,27 @@ class SasaranInisiatifController extends Controller
             ->paginate(10);
 
         return view(
-            'sasaran-inisiatif.index',
-            compact('sasaranInisiatif')
+            'sasaran_inisiatif.index',
+            compact('sasaranInisiatif', 'sasaranStrategis')
         );
+    }
+
+
+    public function byKpi($id_indikator_kpi)
+    {
+        $sasaranInisiatif = SasaranInisiatif::where(
+            'id_indikator_kpi',
+            $id_indikator_kpi
+        )
+            ->with([
+                'indikatorInisiatif' => function ($query) {
+                    $query->withCount('programs');
+                }
+            ])
+            ->orderBy('id_sasaran_inisiatif')
+            ->get();
+
+        return response()->json($sasaranInisiatif);
     }
 
     public function create()
@@ -83,24 +107,13 @@ class SasaranInisiatifController extends Controller
         );
     }
 
-    public function update(
-        Request $request,
-        SasaranInisiatif $sasaranInisiatif
-    ) {
+    public function update(Request $request, $id)
+    {
         $validated = $request->validate([
-            'id_indikator_kpi' => [
-                'required',
-                'exists:indikator_kpi,id_indikator_kpi',
-            ],
-
-            'nama_sasaran_inisiatif' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+            'nama_sasaran_inisiatif' => ['required', 'string', 'max:255'],
         ]);
 
-        $sasaranInisiatif->update($validated);
+        SasaranInisiatif::findOrFail($id)->update($validated);
 
         return redirect()
             ->route('sasaran-inisiatif.index')
@@ -108,11 +121,17 @@ class SasaranInisiatifController extends Controller
     }
 
     public function destroy(SasaranInisiatif $sasaranInisiatif)
-    {
-        $sasaranInisiatif->delete();
-
+{
+    if ($sasaranInisiatif->indikatorInisiatif()->exists()) {
         return redirect()
             ->route('sasaran-inisiatif.index')
-            ->with('success', 'Sasaran inisiatif berhasil dihapus.');
+            ->with('error_hapus', 'Sasaran inisiatif tidak dapat dihapus karena masih memiliki indikator inisiatif turunan.');
     }
+
+    $sasaranInisiatif->delete();
+
+    return redirect()
+        ->route('sasaran-inisiatif.index')
+        ->with('success', 'Sasaran inisiatif berhasil dihapus.');
+}
 }

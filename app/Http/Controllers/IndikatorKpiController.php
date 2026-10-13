@@ -117,6 +117,12 @@ class IndikatorKpiController extends Controller
 
     public function destroy(IndikatorKpi $indikatorKpi)
     {
+        if ($indikatorKpi->sasaranInisiatif()->exists()) {
+            return redirect()
+                ->route('sasaran-strategis.index')
+                ->with('error_hapus', 'Indikator KPI tidak dapat dihapus karena masih memiliki turunan.');
+        }
+        
         $indikatorKpi->delete();
 
         return redirect()
