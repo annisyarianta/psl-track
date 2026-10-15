@@ -25,7 +25,7 @@ class Unit extends Model
         );
     }
 
-    public function picUnits()
+    public function picUnit()
     {
         return $this->hasMany(
             PicUnit::class,

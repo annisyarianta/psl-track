@@ -96,26 +96,28 @@ Route::middleware([
     'auth',
     'force.password.change'
 ])->group(function () {
-    Route::get(
-        '/indikator-kpi/{id_indikator_kpi}/struktur',
-        [IndikatorKpiController::class, 'struktur']
-    )->name('indikator-kpi.struktur');
-    Route::get(
-        '/sasaran-inisiatif/{id_sasaran_inisiatif}/indikator',
-        [SasaranInisiatifController::class, 'indikator']
-    )->name('sasaran-inisiatif.indikator');
+    // Route::get(
+    //     '/indikator-kpi/{id_indikator_kpi}/struktur',
+    //     [IndikatorKpiController::class, 'struktur']
+    // )->name('indikator-kpi.struktur');
+    // Route::get(
+    //     '/sasaran-inisiatif/{id_sasaran_inisiatif}/indikator',
+    //     [SasaranInisiatifController::class, 'indikator']
+    // )->name('sasaran-inisiatif.indikator');
     Route::get(
         '/indikator-kpi/{id_indikator_kpi}/sasaran-inisiatif',
         [SasaranInisiatifController::class, 'byKpi']
     )->name('sasaran-inisiatif.by-kpi');
+
     Route::get(
         '/indikator-inisiatif/{id_indikator_inisiatif}/program',
-        [IndikatorInisiatifController::class, 'program']
-    )->name('indikator-inisiatif.program');
-    Route::get(
-        '/program/{id_program}/indikator',
-        [ProgramController::class, 'indikator']
-    )->name('program.indikator');
+        [ProgramController::class, 'byInisiatif']
+    )->name('program.by-inisiatif');
+    // Route::get(
+    //     '/program/{id_program}/indikator',
+    //     [ProgramController::class, 'indikator']
+    // )->name('program.indikator');
+
     Route::get(
         '/indikator-program/{id_indikator_program}/kegiatan',
         [IndikatorProgramController::class, 'kegiatan']

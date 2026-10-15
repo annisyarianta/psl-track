@@ -58,7 +58,7 @@
                         </div>
                     </div>
 
-                    {{-- PANEL KIRI: Indikator KPI --}}
+                    {{-- PANEL KIRI: Indikator KPI dari Dir. Utama --}}
                     <div class="col-lg-5">
                         <div class="card shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
@@ -301,10 +301,8 @@
                 items: "{{ route('sasaran-inisiatif.by-kpi', '__ID__') }}",
                 itemUpdate: "{{ route('sasaran-inisiatif.update', '__ID__') }}",
                 itemDestroy: "{{ route('sasaran-inisiatif.destroy', '__ID__') }}",
-                itemStore: "{{ route('sasaran-inisiatif.store') }}",
                 indikatorUpdate: "{{ route('indikator-inisiatif.update', '__ID__') }}",
                 indikatorDestroy: "{{ route('indikator-inisiatif.destroy', '__ID__') }}",
-                indikatorStore: "{{ route('indikator-inisiatif.store') }}",
             };
 
             const F = {
@@ -318,9 +316,6 @@
             };
             const labelItem = 'Sasaran Inisiatif';
             const labelIndikator = 'Indikator Inisiatif';
-            const labelParent = 'Indikator KPI';
-            const labelNext = 'Manager';
-            const labelChild = 'program';
 
             const body = document.getElementById('panelKananBody');
             const subKanan = document.getElementById('subKanan');
@@ -397,63 +392,62 @@
                 items.forEach((it, i) => {
                     // const open = i === 0;
                     const inds = it[F.rel] || [];
-                    const total = inds.reduce((a, n) => a + (n[F.child] || 0), 0);
                     const id = it[F.itemId];
 
                     html += `
-    <div class="accordion-item mb-2">
-        <h2 class="accordion-header d-flex align-items-center">
-            <button class="accordion-button collapsed" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#item${id}">
-                <span class="badge bg-primary me-2">${String(i + 1).padStart(2, '0')}</span>
-                <span class="flex-grow-1 fw-medium">${esc(it[F.itemNama])}</span>
-                <span class="text-muted small me-3">${inds.length} indikator</span>
-            </button>
-            ${canManage ? `
-                                                <div class="dropdown border-start px-2">
-                                                    <button class="btn btn-sm" type="button"
-                                                            data-bs-toggle="dropdown" 
-                                                            aria-expanded="false" title="Aksi ${esc(labelItem)}">
-                                                        <i class="bx bx-dots-vertical-rounded font-size-20"></i>
+                        <div class="accordion-item mb-2">
+                            <h2 class="accordion-header d-flex align-items-center">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#item${id}">
+                                    <span class="badge bg-primary me-2">${String(i + 1).padStart(2, '0')}</span>
+                                    <span class="flex-grow-1 fw-medium">${esc(it[F.itemNama])}</span>
+                                    <span class="text-muted small me-3">${inds.length} indikator</span>
+                                </button>
+                                ${canManage ? `
+                                        <div class="dropdown border-start px-2">
+                                            <button class="btn btn-sm" type="button"
+                                                    data-bs-toggle="dropdown" 
+                                                    aria-expanded="false" title="Aksi ${esc(labelItem)}">
+                                                <i class="bx bx-dots-vertical-rounded font-size-20"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <button type="button" class="dropdown-item js-edit-item" data-id="${id}">
+                                                        <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
                                                     </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end">
-                                                        <li>
-                                                            <button type="button" class="dropdown-item js-edit-item" data-id="${id}">
-                                                                <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button type="button" class="dropdown-item text-danger js-hapus-item" data-id="${id}">
-                                                                <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
-                                                            </button>
-                                                        </li>
-                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <button type="button" class="dropdown-item text-danger js-hapus-item" data-id="${id}">
+                                                        <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>` : ''}
+                            </h2>
+                            <div id="item${id}" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    ${inds.map((n) => `
+                                                                        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                                                                            <div>
+                                                                                <div>${esc(n[F.indNama])}</div>
+                                                                                <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
+                                                                            </div>
+                                                                            ${canManage ? `
+                                                <div class="d-flex gap-1">
+                                                    <button class="btn btn-sm btn-light js-edit-indikator" data-item="${id}" data-id="${n[F.indId]}"><i class="mdi mdi-pencil"></i></button>
+                                                    <button class="btn btn-sm btn-light js-hapus-indikator" data-id="${n[F.indId]}"><i class="mdi mdi-delete"></i></button>
                                                 </div>` : ''}
-        </h2>
-        <div id="item${id}" class="accordion-collapse collapse">
-            <div class="accordion-body">
-                ${inds.map((n) => `
-                                                    <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                                        <div>
-                                                            <div>${esc(n[F.indNama])}</div>
-                                                            <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
-                                                        </div>
-                                                        ${canManage ? `
-                            <div class="d-flex gap-1">
-                                <button class="btn btn-sm btn-light js-edit-indikator" data-item="${id}" data-id="${n[F.indId]}"><i class="mdi mdi-pencil"></i></button>
-                                <button class="btn btn-sm btn-light js-hapus-indikator" data-id="${n[F.indId]}"><i class="mdi mdi-delete"></i></button>
-                            </div>` : ''}
-                                                    </div>`).join('')}
+                                                                        </div>`).join('')}
 
-                ${canManage ? `
-                                                    <button type="button" class="btn btn-link btn-sm px-0 mt-2 js-tambah-indikator"
-                                                            data-bs-toggle="modal" data-bs-target="#tambahIndikatorInisiatif"
-                                                            data-item="${id}">
-                                                        <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
-                                                    </button>` : ''}
-            </div>
-        </div>
-    </div>`;
+                                    ${canManage ? `
+                                                                        <button type="button" class="btn btn-link btn-sm px-0 mt-2"
+                                                                                data-bs-toggle="modal" data-bs-target="#tambahIndikatorInisiatif"
+                                                                                data-item="${id}">
+                                                                            <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
+                                                                        </button>` : ''}
+                                </div>
+                            </div>
+                        </div>`;
                 });
                 html += '</div>';
                 body.innerHTML = html;
