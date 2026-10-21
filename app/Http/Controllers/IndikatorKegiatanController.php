@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\IndikatorKegiatan;
 use App\Models\Kegiatan;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class IndikatorKegiatanController extends Controller
 {
@@ -38,7 +41,7 @@ class IndikatorKegiatanController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $dataTervalidasi = $request->validate([
             'id_kegiatan' => [
                 'required',
                 'exists:kegiatan,id_kegiatan',
@@ -55,12 +58,29 @@ class IndikatorKegiatanController extends Controller
                 'string',
                 'max:255',
             ],
+
+            'id_user'   => ['nullable', 'array'],
+            'id_user.*' => [
+                'distinct',
+                Rule::exists('users', 'id_user')->where(
+                    fn($query) => $query
+                        ->where('role', 'staff')
+                        ->where('id_unit', auth()->user()->id_unit)
+                ),
+            ],
         ]);
 
-        IndikatorKegiatan::create($validated);
+        DB::transaction(function () use ($dataTervalidasi) {
+            $indikatorKegiatan = IndikatorKegiatan::create(Arr::except($dataTervalidasi, 'id_user'));
+            $this->sinkronkanPicStaff($indikatorKegiatan, $dataTervalidasi['id_user'] ?? []);
+        });
 
         return redirect()
-            ->route('indikator-kegiatan.index')
+            ->route('kegiatan.index')
+            ->with('success', 'Indikator kegiatan berhasil ditambahkan.');
+
+        return redirect()
+            ->route('kegiatan.index')
             ->with('success', 'Indikator kegiatan berhasil ditambahkan.');
     }
 
@@ -92,56 +112,68 @@ class IndikatorKegiatanController extends Controller
         );
     }
 
-    public function update(
-        Request $request,
-        IndikatorKegiatan $indikatorKegiatan
-    ) {
-        $validated = $request->validate([
-            'id_kegiatan' => [
-                'required',
-                'exists:kegiatan,id_kegiatan',
-            ],
-
-            'nama_indikator_kegiatan' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'target_asmen' => [
-                'nullable',
-                'string',
-                'max:255',
+    public function update(Request $request, IndikatorKegiatan $indikatorKegiatan)
+    {
+        $dataTervalidasi = $request->validate([
+            'nama_indikator_kegiatan' => ['required', 'string', 'max:255'],
+            'target_asmen'            => ['nullable', 'string', 'max:255'],
+            'id_staff'                => ['nullable', 'array'],
+            'id_staff.*'              => [
+                'distinct',
+                Rule::exists('users', 'id_user')->where(
+                    fn($query) => $query
+                        ->where('role', 'staff')
+                        ->where('id_unit', auth()->user()->id_unit)
+                ),
             ],
         ]);
 
-        $indikatorKegiatan->update($validated);
+        DB::transaction(function () use ($indikatorKegiatan, $dataTervalidasi) {
+            $indikatorKegiatan->update(Arr::except($dataTervalidasi, 'id_staff'));
+            $this->sinkronkanPicStaff($indikatorKegiatan, $dataTervalidasi['id_staff'] ?? []);
+        });
 
         return redirect()
-            ->route('indikator-kegiatan.index')
+            ->route('kegiatan.index')
             ->with('success', 'Indikator kegiatan berhasil diperbarui.');
     }
 
     public function destroy(IndikatorKegiatan $indikatorKegiatan)
     {
-        $indikatorKegiatan->delete();
+        if ($indikatorKegiatan->subKegiatan()->exists()) {
+            return redirect()
+                ->route('kegiatan.index')
+                ->with('error_hapus', 'Indikator kegiatan tidak dapat dihapus karena masih memiliki turunan.');
+        }
+        
+        DB::transaction(function () use ($indikatorKegiatan) {
+            $indikatorKegiatan->picStaff()->delete();
+            $indikatorKegiatan->delete();
+        });
 
         return redirect()
-            ->route('indikator-kegiatan.index')
+            ->route('kegiatan.index')
             ->with('success', 'Indikator kegiatan berhasil dihapus.');
     }
 
-    public function subKegiatan(
-        IndikatorKegiatan $indikatorKegiatan
-    ) {
-        $indikatorKegiatan->load([
-            'kegiatan.indikatorProgram.program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun',
-            'subKegiatan.indikatorSubKegiatan',
-        ]);
 
-        return view(
-            'indikator-kegiatan.sub-kegiatan',
-            compact('indikatorKegiatan')
-        );
+    private function sinkronkanPicStaff(IndikatorKegiatan $indikatorKegiatan, array $daftarIdStaffBaru): void
+    {
+        $daftarIdStaffLama = $indikatorKegiatan->picStaff()->pluck('id_user')->all();
+
+        $daftarIdStaffDihapus = array_diff($daftarIdStaffLama, $daftarIdStaffBaru);
+        $daftarIdStaffDitambah = array_diff($daftarIdStaffBaru, $daftarIdStaffLama);
+
+        if ($daftarIdStaffDihapus) {
+            $indikatorKegiatan->picStaff()->whereIn('id_user', $daftarIdStaffDihapus)->delete();
+        }
+
+        foreach ($daftarIdStaffDitambah as $idStaff) {
+            $indikatorKegiatan->picStaff()->create([
+                'id_user'     => $idStaff,
+                'assigned_by' => auth()->user()->id_user,
+                'assigned_at' => now(),
+            ]);
+        }
     }
 }

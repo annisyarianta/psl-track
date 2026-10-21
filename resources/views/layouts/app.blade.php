@@ -124,8 +124,8 @@
                                         Utama</a></li>
                                 <li><a href="{{ route('sasaran-inisiatif.index') }}" data-key="t-level-1-1">Dir. Bagian</a></li>
                                 <li><a href="{{ route('program.index') }}" data-key="t-level-1-1">Manager</a></li>
-                                <li><a href="javascript: void(0);" data-key="t-level-1-1">Ass. Manager</a></li>
-                                <li><a href="javascript: void(0);" data-key="t-level-1-1">Staff</a></li>
+                                <li><a href="{{ route('kegiatan.index') }}" data-key="t-level-1-1">Ass. Manager</a></li>
+                                <li><a href="{{ route('sub-kegiatan.index') }}" data-key="t-level-1-1">Staff</a></li>
                             </ul>
                         </li>
 

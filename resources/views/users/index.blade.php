@@ -52,14 +52,14 @@
                             </div>
                             <div class="card-body">
                                 <table id="datatable" class="table table-bordered dt-responsive w-100 table-hover">
-                                    <thead>
+                                    <thead class="align-middle">
                                         <tr>
-                                            <th class="text-center" style="width: 30px">No. Pegawai</th>
-                                            <th class="text-center" style="width: 160px">Nama</th>
-                                            <th class="text-center" style="width: 50px">Email</th>
-                                            <th class="text-center" style="width: 80px">Unit</th>
-                                            <th class="text-center" style="width: 40px">Role</th>
-                                            <th class="text-center" style="width: 50px">Aksi</th>
+                                            <th class="text-center" style="width: 10%">No. Pegawai</th>
+                                            <th class="text-center" style="width: 22%">Nama</th>
+                                            <th class="text-center" style="width: 24%">Email</th>
+                                            <th class="text-center" style="width: 22%">Unit</th>
+                                            <th class="text-center" style="width: 10%">Role</th>
+                                            <th class="text-center" style="width: 12%">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -68,8 +68,7 @@
                                                 <td class="text-center">{{ $user->nopeg }}</td>
                                                 <td>{{ $user->nama }}</td>
                                                 <td class="text-center"> {{ $user->email }}</td>
-                                                <td class="text-center">{{ $user->unit ?? '-' }}</td>
-                                                <td class="text-center">
+                                                <td class="text-center">{{ $user->unit->nama_unit ?? '-' }}</td>                                                <td class="text-center">
                                                     @if ($user->role === 'manager')
                                                         <span class="badge bg-success">
                                                             Manager

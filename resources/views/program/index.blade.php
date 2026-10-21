@@ -500,47 +500,47 @@
                         <span class="text-muted small me-3">${inds.length} indikator</span>
                     </button>
                     ${canManage ? `
-                                                                        <div class="dropdown border-start px-2">
-                                                                            <button class="btn btn-sm" type="button"
-                                                                                    data-bs-toggle="dropdown"
-                                                                                    aria-expanded="false" title="Aksi ${esc(labelItem)}">
-                                                                                <i class="bx bx-dots-vertical-rounded font-size-20"></i>
-                                                                            </button>
-                                                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                                                <li>
-                                                                                    <button type="button" class="dropdown-item js-edit-item" data-id="${id}">
-                                                                                        <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
-                                                                                    </button>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <button type="button" class="dropdown-item text-danger js-hapus-item" data-id="${id}">
-                                                                                        <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
-                                                                                    </button>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>` : ''}
+                        <div class="dropdown border-start px-2">
+                            <button class="btn btn-sm" type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false" title="Aksi ${esc(labelItem)}">
+                                <i class="bx bx-dots-vertical-rounded font-size-20"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <button type="button" class="dropdown-item js-edit-program" data-id="${id}">
+                                        <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item text-danger js-hapus-program" data-id="${id}">
+                                        <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>` : ''}
                 </h2>
                 <div id="item${id}" class="accordion-collapse collapse">
                     <div class="accordion-body">
                         ${inds.map((n, indeksIndikator) => `
-                                                                        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                                                            <div class="d-flex gap-2">
-                                                                                <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>                                            <div>
-                                                                                    <div>${esc(n[F.indNama])}</div>
-                                                                                    <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
-                                                                                    <div class="text-muted small">Aspek : ${esc(cap(n.aspek) || '-')}</div>
-                                                                                    <div class="text-muted small">Periode Pengukuran : ${esc(cap(n.periode_pengukuran) || '-')}</div>
-                                                                                    <div class="text-muted small">Unit : ${
-                                                                                        (n.pic_unit || []).length
-                                                                                            ? n.pic_unit.map((picUnit) => {
-                                                                                                const namaUnitLengkap = picUnit.unit ? picUnit.unit.nama_unit : '';
-                                                                                                return `<span class="badge bg-info-subtle rounded-pill text-info" title="${esc(namaUnitLengkap)}">${esc(ambilKataPertama(namaUnitLengkap))}</span>`;
-                                                                                            }).join(' ')
-                                                                                            : '-'
-                                                                                    }</div>
-                                                                                </div>
-                                                                            </div>
-                                                                            ${canManage ? `
+                        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>                                            <div>
+                                    <div>${esc(n[F.indNama])}</div>
+                                    <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
+                                    <div class="text-muted small">Aspek : ${esc(cap(n.aspek) || '-')}</div>
+                                    <div class="text-muted small">Periode Pengukuran : ${esc(cap(n.periode_pengukuran) || '-')}</div>
+                                    <div class="text-muted small">Unit : ${
+                                        (n.pic_unit || []).length
+                                            ? n.pic_unit.map((picUnit) => {
+                                                const namaUnitLengkap = picUnit.unit ? picUnit.unit.nama_unit : '';
+                                                return `<span class="badge bg-info-subtle rounded-pill text-info" title="${esc(namaUnitLengkap)}">${esc(ambilKataPertama(namaUnitLengkap))}</span>`;
+                                            }).join(' ')
+                                            : '-'
+                                    }</div>
+                                </div>
+                            </div>
+                            ${canManage ? `
                             <div class="d-flex gap-1">
                                 <button class="btn btn-sm btn-light js-edit-indikator" data-item="${id}" data-id="${n[F.indId]}"><i class="mdi mdi-pencil"></i></button>
                                 <button class="btn btn-sm btn-light js-hapus-indikator" data-id="${n[F.indId]}"><i class="mdi mdi-delete"></i></button>
@@ -548,7 +548,7 @@
                                                                             </div>`).join('')}
 
                         ${canManage ? `
-                                                                            <button class="btn btn-link btn-sm px-0 mt-2" data-bs-toggle="modal" data-bs-target="#tambahIndikatorProgram" data-item="${id}">
+                                                                            <button class="btn btn-link btn-sm px-0 mt-2 js-tambah-indikator" data-bs-toggle="modal" data-bs-target="#tambahIndikatorProgram" data-item="${id}">
                                                                                 <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
                                                                             </button>` : ''}
                     </div>
@@ -674,12 +674,12 @@
                 const tombol = e.target.closest('button');
                 if (!tombol) return;
 
-                if (tombol.classList.contains('js-edit-item')) {
+                if (tombol.classList.contains('js-edit-program')) {
                     const program = itemsCache.find((x) => String(x[F.itemId]) === tombol.dataset.id);
                     if (program) bukaModalEditProgram(program);
                 }
 
-                if (tombol.classList.contains('js-hapus-item')) {
+                if (tombol.classList.contains('js-hapus-program')) {
                     konfirmasiHapus(url(routes.itemDestroy, tombol.dataset.id));
                 }
 

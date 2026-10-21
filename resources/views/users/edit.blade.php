@@ -85,16 +85,16 @@
                                         </div>
                                     </div>
                                     <div class="row mb-3">
-                                        <label for="unit-input" class="col-sm-2 col-form-label">Unit</label>
+                                        <label for="id_unit" class="col-sm-2 col-form-label">Unit</label>
                                         <div class="col-sm-10">
-                                            <select class="form-select" id="unit-input" name="unit">
+                                            <select class="form-select" id="id_unit" name="id_unit">
                                                 <option value=""
-                                                    {{ old('unit', $user->unit) == null ? 'selected' : '' }}>
+                                                    {{ old('id_unit', $user->id_unit) == null ? 'selected' : '' }}>
                                                     -- Pilih Unit --
                                                 </option>
                                                 @foreach ($units as $unit)
                                                     <option value="{{ $unit->id_unit }}"
-                                                        {{ old('unit', $user->unit) == $unit->id_unit ? 'selected' : '' }}>
+                                                        {{ old('id_unit', $user->id_unit) == $unit->id_unit ? 'selected' : '' }}>
                                                         {{ $unit->nama_unit }}
                                                     </option>
                                                 @endforeach

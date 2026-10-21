@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
+
 class UserController extends Controller
 {
     public function index()
@@ -45,13 +46,6 @@ class UserController extends Controller
                 'unique:users,email',
             ],
 
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-            ],
-
             'role' => [
                 'required',
                 Rule::in(['manager', 'asmen', 'staff']),
@@ -63,9 +57,8 @@ class UserController extends Controller
             ],
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $validated['password'] = Hash::make('12345678');
 
-        // User baru wajib mengganti password pada login pertama
         $validated['must_change_password'] = true;
 
         User::create($validated);
@@ -123,23 +116,7 @@ class UserController extends Controller
                 'exists:unit,id_unit',
             ],
 
-            'password' => [
-                'nullable',
-                'string',
-                'min:8',
-                'confirmed',
-            ],
         ]);
-
-        /*
-         * Password hanya diubah jika field password diisi.
-         */
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-            $validated['must_change_password'] = true;
-        } else {
-            unset($validated['password']);
-        }
 
         $user->update($validated);
 
@@ -150,10 +127,23 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $user->delete();
+        if (auth()->id() === $user->id_user) {
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
 
-        return redirect()
-            ->route('users.index')
-            ->with('success', 'User berhasil dihapus.');
+        try {
+            $user->delete();
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'User berhasil dihapus.');
+        } catch (\Exception $e) {
+
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'User gagal dihapus.');
+        }
     }
 }
