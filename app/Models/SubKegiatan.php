@@ -14,7 +14,8 @@ class SubKegiatan extends Model
 
     protected $fillable = [
         'id_indikator_kegiatan',
-        'nama_sub_kegiatan',
+        'judul_sub_kegiatan',
+        'isi_sub_kegiatan',
     ];
 
     public function indikatorKegiatan()

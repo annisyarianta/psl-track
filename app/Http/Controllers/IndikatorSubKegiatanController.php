@@ -7,6 +7,7 @@ use App\Models\SubKegiatan;
 use App\Models\Monitoring;
 use App\Models\PeriodeTw;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IndikatorSubKegiatanController extends Controller
 {
@@ -77,24 +78,23 @@ class IndikatorSubKegiatanController extends Controller
             ->sasaranStrategis
             ->tahun;
 
-        $periodeTws = PeriodeTw::where(
-            'id_tahun',
-            $tahun->id_tahun
-        )->get();
+        $periodeTws = PeriodeTw::where('id_tahun', $tahun->id_tahun)->get();
 
         foreach ($periodeTws as $periodeTw) {
             Monitoring::create([
                 'id_periode_tw' => $periodeTw->id_periode_tw,
                 'id_indikator_sub_kegiatan' => $indikatorSubKegiatan->id_indikator_sub_kegiatan,
                 'status' => 'notstarted',
+                'last_updated_by' => auth()->id(),
+                'last_updated_at' => now(),
             ]);
         }
 
         return redirect()
-            ->route('indikator-sub-kegiatan.index')
+            ->route('sub-kegiatan.index')
             ->with(
                 'success',
-                'Indikator sub kegiatan dan monitoring berhasil dibuat.'
+                'Indikator sub kegiatan berhasil dibuat.'
             );
     }
 
@@ -135,11 +135,6 @@ class IndikatorSubKegiatanController extends Controller
         IndikatorSubKegiatan $indikatorSubKegiatan
     ) {
         $validated = $request->validate([
-            'id_sub_kegiatan' => [
-                'required',
-                'exists:sub_kegiatan,id_sub_kegiatan',
-            ],
-
             'nama_indikator_sub_kegiatan' => [
                 'required',
                 'string',
@@ -156,37 +151,40 @@ class IndikatorSubKegiatanController extends Controller
         $indikatorSubKegiatan->update($validated);
 
         return redirect()
-            ->route('indikator-sub-kegiatan.index')
+            ->route('sub-kegiatan.index')
             ->with(
                 'success',
                 'Indikator sub kegiatan berhasil diperbarui.'
             );
     }
 
-    public function destroy(
-        IndikatorSubKegiatan $indikatorSubKegiatan
-    ) {
-        $indikatorSubKegiatan->delete();
+    public function destroy(IndikatorSubKegiatan $indikatorSubKegiatan)
+    {
+        $sudahDiisi = Monitoring::where(
+            'id_indikator_sub_kegiatan',
+            $indikatorSubKegiatan->id_indikator_sub_kegiatan
+        )->where('status', '!=', 'notstarted')->exists();
+
+        if ($sudahDiisi) {
+            return redirect()
+                ->route('sub-kegiatan.index')
+                ->with(
+                    'error_hapus',
+                    'Indikator sub kegiatan tidak dapat dihapus karena monitoring sudah mulai diisi.'
+                );
+        }
+
+        DB::transaction(function () use ($indikatorSubKegiatan) {
+            Monitoring::where(
+                'id_indikator_sub_kegiatan',
+                $indikatorSubKegiatan->id_indikator_sub_kegiatan
+            )->delete();
+
+            $indikatorSubKegiatan->delete();
+        });
 
         return redirect()
-            ->route('indikator-sub-kegiatan.index')
-            ->with(
-                'success',
-                'Indikator sub kegiatan berhasil dihapus.'
-            );
-    }
-
-    public function monitoring(
-        IndikatorSubKegiatan $indikatorSubKegiatan
-    ) {
-        $indikatorSubKegiatan->load([
-            'subKegiatan.indikatorKegiatan.kegiatan.indikatorProgram.program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun',
-            'monitoring.periodeTw',
-        ]);
-
-        return view(
-            'indikator-sub-kegiatan.monitoring',
-            compact('indikatorSubKegiatan')
-        );
+            ->route('sub-kegiatan.index')
+            ->with('success', 'Indikator sub kegiatan berhasil dihapus.');
     }
 }

@@ -77,7 +77,7 @@
                             <div class="card-body p-0">
                                 @forelse ($programs as $program)
                                     @if ($program->indikatorProgram->count())
-                                        <div class="px-3 pt-3 pb-1 text-muted small">{{ $program->nama_program }}</div>
+                                        <div class="px-3 pt-3 pb-1 text-primary small">{{ $program->nama_program }}</div>
                                         <div class="list-group list-group-flush">
                                             @foreach ($program->indikatorProgram as $ind)
                                                 <a href="#" class="list-group-item list-group-item-action js-parent"
@@ -123,7 +123,6 @@
                                     </button>
                                 </div>
                             </div>
-
                             <div class="card-body" id="panelKananBody">
                                 <div class="text-center text-muted py-4">Pilih Indikator Program</div>
                             </div>
@@ -221,7 +220,7 @@
                                         value="{{ old('id_kegiatan') }}">
                                     <div class="modal-body">
                                         <div class="row mb-3">
-                                            <label for="nama_indikator_program" class="col-sm-3 col-form-label">Nama
+                                            <label for="nama_indikator_kegiatan" class="col-sm-3 col-form-label">Nama
                                                 Indikator Kegiatan
                                                 <span class="text-danger">*</span></label>
                                             <div class="col-sm-9">

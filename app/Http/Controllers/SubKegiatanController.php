@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kegiatan;
 use App\Models\SubKegiatan;
 use App\Models\IndikatorKegiatan;
 use Illuminate\Http\Request;
@@ -10,6 +11,10 @@ class SubKegiatanController extends Controller
 {
     public function index()
     {
+        $kegiatans = Kegiatan::whereHas('indikatorKegiatan')
+            ->with(['indikatorKegiatan' => fn($query) => $query->withCount('subKegiatan')])
+            ->get();
+
         $subKegiatan = SubKegiatan::with(
             'indikatorKegiatan.kegiatan.indikatorProgram'
         )
@@ -17,8 +22,8 @@ class SubKegiatanController extends Controller
             ->paginate(10);
 
         return view(
-            'sub-kegiatan.index',
-            compact('subKegiatan')
+            'sub_kegiatan.index',
+            compact('subKegiatan', 'kegiatans')
         );
     }
 
@@ -43,9 +48,13 @@ class SubKegiatanController extends Controller
                 'required',
                 'exists:indikator_kegiatan,id_indikator_kegiatan',
             ],
-
-            'nama_sub_kegiatan' => [
+            'judul_sub_kegiatan' => [
                 'required',
+                'string',
+                'max:255',
+            ],
+            'isi_sub_kegiatan' => [
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -90,13 +99,14 @@ class SubKegiatanController extends Controller
         SubKegiatan $subKegiatan
     ) {
         $validated = $request->validate([
-            'id_indikator_kegiatan' => [
+            'judul_sub_kegiatan' => [
                 'required',
-                'exists:indikator_kegiatan,id_indikator_kegiatan',
+                'string',
+                'max:255',
             ],
 
-            'nama_sub_kegiatan' => [
-                'required',
+            'isi_sub_kegiatan' => [
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -118,17 +128,12 @@ class SubKegiatanController extends Controller
             ->with('success', 'Sub kegiatan berhasil dihapus.');
     }
 
-    public function indikator(
-        SubKegiatan $subKegiatan
-    ) {
-        $subKegiatan->load([
-            'indikatorKegiatan.kegiatan.indikatorProgram.program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun',
-            'indikatorSubKegiatan',
-        ]);
+    public function byIndikatorKegiatan($idIndikatorKegiatan)
+    {
+        $daftarSubKegiatan = SubKegiatan::where('id_indikator_kegiatan', $idIndikatorKegiatan)
+            ->with('indikatorSubKegiatan')
+            ->get();
 
-        return view(
-            'sub-kegiatan.indikator',
-            compact('subKegiatan')
-        );
+        return response()->json($daftarSubKegiatan);
     }
 }

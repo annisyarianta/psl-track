@@ -96,14 +96,6 @@ Route::middleware([
     'auth',
     'force.password.change'
 ])->group(function () {
-    // Route::get(
-    //     '/indikator-kpi/{id_indikator_kpi}/struktur',
-    //     [IndikatorKpiController::class, 'struktur']
-    // )->name('indikator-kpi.struktur');
-    // Route::get(
-    //     '/sasaran-inisiatif/{id_sasaran_inisiatif}/indikator',
-    //     [SasaranInisiatifController::class, 'indikator']
-    // )->name('sasaran-inisiatif.indikator');
     Route::get(
         '/indikator-kpi/{id_indikator_kpi}/sasaran-inisiatif',
         [SasaranInisiatifController::class, 'byKpi']
@@ -116,7 +108,11 @@ Route::middleware([
         '/indikator-program/{id_indikator_program}/kegiatan',
         [KegiatanController::class, 'byProgram']
     )->name('kegiatan.by-program');
-
+    Route::get(
+        'sub-kegiatan/indikator-kegiatan/{idIndikatorKegiatan}',
+        [SubKegiatanController::class, 'byIndikatorKegiatan']
+    )->name('sub-kegiatan.by-indikator-kegiatan');
+// 
     // Route::get(
     //     '/program/{id_program}/indikator',
     //     [ProgramController::class, 'indikator']
@@ -130,14 +126,14 @@ Route::middleware([
     //     '/kegiatan/{id_kegiatan}/indikator',
     //     [KegiatanController::class, 'indikator']
     // )->name('kegiatan.indikator');
-    Route::get(
-        '/indikator-kegiatan/{id_indikator_kegiatan}/sub-kegiatan',
-        [IndikatorKegiatanController::class, 'subKegiatan']
-    )->name('indikator-kegiatan.sub-kegiatan');
-    Route::get(
-        '/indikator-sub-kegiatan/{id_indikator_sub_kegiatan}/monitoring',
-        [IndikatorSubKegiatanController::class, 'monitoring']
-    )->name('indikator-sub-kegiatan.monitoring');
+    // Route::get(
+    //     '/indikator-kegiatan/{id_indikator_kegiatan}/sub-kegiatan',
+    //     [IndikatorKegiatanController::class, 'subKegiatan']
+    // )->name('indikator-kegiatan.sub-kegiatan');
+    // Route::get(
+    //     '/indikator-sub-kegiatan/{id_indikator_sub_kegiatan}/monitoring',
+    //     [IndikatorSubKegiatanController::class, 'monitoring']
+    // )->name('indikator-sub-kegiatan.monitoring');
 
 
     Route::resource('tahun', TahunController::class);

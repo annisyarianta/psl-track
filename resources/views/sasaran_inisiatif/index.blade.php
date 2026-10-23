@@ -85,7 +85,7 @@
                                                                 {{ $kpi->target_dirut ?? '-' }}
                                                             </p>
                                                         </div>
-                                                        <span class="badge bg-warning text-dark">
+                                                        <span class="badge bg-info">
                                                             {{ $kpi->sasaran_inisiatif_count ?? 0 }}
                                                             Sasaran Inisiatif
                                                         </span>
