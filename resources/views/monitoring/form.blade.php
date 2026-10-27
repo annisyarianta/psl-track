@@ -89,7 +89,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label d-block">Status</label>
-                                @foreach (['notstarted' => 'Belum Mulai', 'onprogress' => 'On Progress', 'done' => 'Selesai'] as $nilaiStatus => $labelStatus)
+                                @foreach (['notstarted' => 'Belum Mulai', 'onprogress' => 'Sedang Berlangsung', 'done' => 'Selesai'] as $nilaiStatus => $labelStatus)
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="status"
                                             id="status-{{ $nilaiStatus }}" value="{{ $nilaiStatus }}"

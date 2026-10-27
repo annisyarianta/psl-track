@@ -23,6 +23,7 @@ use App\Http\Controllers\PicUnitController;
 use App\Http\Controllers\PicStaffController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\FilePelaporanController;
+use App\Http\Controllers\TaskController;
 
 
 Route::get('/', function () {
@@ -112,28 +113,8 @@ Route::middleware([
         'sub-kegiatan/indikator-kegiatan/{idIndikatorKegiatan}',
         [SubKegiatanController::class, 'byIndikatorKegiatan']
     )->name('sub-kegiatan.by-indikator-kegiatan');
-// 
-    // Route::get(
-    //     '/program/{id_program}/indikator',
-    //     [ProgramController::class, 'indikator']
-    // )->name('program.indikator');
+    Route::patch('task-tracker/{task}/status', [TaskController::class, 'updateStatus'])->name('task.status');
 
-    // Route::get(
-    //     '/indikator-program/{id_indikator_program}/kegiatan',
-    //     [IndikatorProgramController::class, 'kegiatan']
-    // )->name('indikator-program.kegiatan');
-    // Route::get(
-    //     '/kegiatan/{id_kegiatan}/indikator',
-    //     [KegiatanController::class, 'indikator']
-    // )->name('kegiatan.indikator');
-    // Route::get(
-    //     '/indikator-kegiatan/{id_indikator_kegiatan}/sub-kegiatan',
-    //     [IndikatorKegiatanController::class, 'subKegiatan']
-    // )->name('indikator-kegiatan.sub-kegiatan');
-    // Route::get(
-    //     '/indikator-sub-kegiatan/{id_indikator_sub_kegiatan}/monitoring',
-    //     [IndikatorSubKegiatanController::class, 'monitoring']
-    // )->name('indikator-sub-kegiatan.monitoring');
 
 
     Route::resource('tahun', TahunController::class);
@@ -160,4 +141,8 @@ Route::middleware([
             'update',
         ]);
     Route::resource('file-pelaporan', FilePelaporanController::class);
+    Route::resource('task-tracker', TaskController::class)
+        ->parameters(['task-tracker' => 'task'])
+        ->names('task')
+        ->except(['show']);
 });

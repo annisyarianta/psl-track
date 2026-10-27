@@ -131,7 +131,7 @@
                         </li>
 
                         <li>
-                            <a href="#">
+                            <a href="{{ route('task.index') }}">
                                 <i class="bx bx-task"></i>
                                 <span>Task Tracker</span>
                             </a>
