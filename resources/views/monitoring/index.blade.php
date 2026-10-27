@@ -67,7 +67,7 @@
                                         onchange="this.form.submit()">
                                         <option value="">Semua status</option>
                                         <option value="notstarted" @selected($statusDipilih === 'notstarted')>Belum mulai</option>
-                                        <option value="onprogress" @selected($statusDipilih === 'onprogress')>On Progress</option>
+                                        <option value="onprogress" @selected($statusDipilih === 'onprogress')>Sedang Berlangsung</option>
                                         <option value="done" @selected($statusDipilih === 'done')>Selesai</option>
                                     </select>
                                 </div>
@@ -79,7 +79,7 @@
                 <div class="row">
                     @foreach ([
             'notstarted' => 'Belum Mulai',
-            'onprogress' => 'On Progress',
+            'onprogress' => 'Sedang Berlangsung',
             'done' => 'Selesai',
         ] as $kodeStatus => $labelRingkasan)
                         <div class="col-md-4">
@@ -96,7 +96,7 @@
                 @php
                     $tampilanStatus = [
                         'notstarted' => ['label' => 'Belum Mulai', 'warna' => 'secondary'],
-                        'onprogress' => ['label' => 'On Progress', 'warna' => 'primary'],
+                        'onprogress' => ['label' => 'Sedang Berlangsung', 'warna' => 'primary'],
                         'done' => ['label' => 'Selesai', 'warna' => 'success'],
                     ];
                 @endphp

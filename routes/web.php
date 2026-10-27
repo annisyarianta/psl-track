@@ -24,6 +24,7 @@ use App\Http\Controllers\PicStaffController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\FilePelaporanController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\DashboardController;
 
 
 Route::get('/', function () {
@@ -83,9 +84,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware([
         'auth',
         'force.password.change'

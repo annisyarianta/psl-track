@@ -171,39 +171,52 @@
                 </div>
 
                 {{-- Modal Detail Task (dipakai bersama oleh tabel dan kalender) --}}
-                <div class="modal fade" id="modalDetailTask" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal fade" id="modalDetailTask" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Detail Task</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                <h4 class="modal-title">Detail Task</h4>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div class="modal-body">
-                                <dl class="row mb-0">
-                                    <dt class="col-sm-3">Program</dt>
-                                    <dd class="col-sm-9" id="detail-program"></dd>
-
-                                    <dt class="col-sm-3">Judul</dt>
-                                    <dd class="col-sm-9" id="detail-judul"></dd>
-
-                                    <dt class="col-sm-3">Deskripsi</dt>
-                                    <dd class="col-sm-9" id="detail-deskripsi" style="white-space: pre-line;"></dd>
-
-                                    <dt class="col-sm-3">Tenggat Waktu</dt>
-                                    <dd class="col-sm-9" id="detail-tenggat"></dd>
-
-                                    <dt class="col-sm-3">Diberikan oleh</dt>
-                                    <dd class="col-sm-9" id="detail-pemberi"></dd>
-
-                                    <dt class="col-sm-3">Ditugaskan ke</dt>
-                                    <dd class="col-sm-9" id="detail-daftar-penerima"></dd>
-
-                                    <dt class="col-sm-3">Status</dt>
-                                    <dd class="col-sm-9" id="detail-status"></dd>
-
-                                    <dt class="col-sm-3">File</dt>
-                                    <dd class="col-sm-9 mb-0" id="detail-daftar-file"></dd>
-                                </dl>
+                            <div class="modal-body card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row" style="width: 230px">Program</th>
+                                                <td id="detail-program"></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Judul</th>
+                                                <td id="detail-judul"></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Deskripsi</th>
+                                                <td id="detail-deskripsi" style="white-space: pre-line;"></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Tenggat Waktu</th>
+                                                <td id="detail-tenggat"></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Diberikan oleh</th>
+                                                <td id="detail-pemberi"></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Ditugaskan ke</th>
+                                                <td id="detail-daftar-penerima"></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Status</th>
+                                                <td id="detail-status"></td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">File</th>
+                                                <td id="detail-daftar-file"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <a href="#" id="tombol-edit-dari-modal" class="btn btn-warning d-none">Edit</a>

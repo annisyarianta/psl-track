@@ -57,7 +57,6 @@ class Task extends Model
         return $this->hasMany(FileTask::class, 'id_task', 'id_task');
     }
 
-    // Task yang diberikan oleh user ini ATAU ditugaskan kepada user ini
     public function scopeMilikUser($query, int $idUser)
     {
         return $query->where(function ($subQuery) use ($idUser) {
