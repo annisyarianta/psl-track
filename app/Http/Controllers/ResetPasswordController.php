@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 
 class ResetPasswordController extends Controller
 {
@@ -26,55 +25,36 @@ class ResetPasswordController extends Controller
     public function reset(Request $request)
     {
         $request->validate([
-            'token' => [
-                'required',
-            ],
-
-            'email' => [
-                'required',
-                'email',
-            ],
-
-            'password' => [
-                'required',
-                'min:8',
-                'confirmed',
-            ],
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:8', 'confirmed'],
         ]);
 
-        $status = Password::reset(
-            $request->only(
-                'email',
-                'password',
-                'password_confirmation',
-                'token'
-            ),
-            function ($user, $password) {
-
-                $user->forceFill([
-                    'password' => Hash::make($password),
-
-                    'remember_token' =>
-                        Str::random(60),
-
-                    'must_change_password' =>
-                        false,
+        $statusReset = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($pengguna, $passwordBaru) {
+                $pengguna->forceFill([
+                    'password' => Hash::make($passwordBaru),
+                    'must_change_password' => false,
                 ])->save();
             }
         );
 
-        if ($status === Password::PASSWORD_RESET) {
-
+        if ($statusReset === Password::PASSWORD_RESET) {
             return redirect()
                 ->route('login')
-                ->with(
-                    'success',
-                    'Password berhasil direset. Silakan login.'
-                );
+                ->with('success', 'Password berhasil direset. Silakan login.');
         }
 
-        return back()->withErrors([
-            'email' => __($status),
-        ]);
+        $daftarPesanGagal = [
+            Password::INVALID_TOKEN => 'Link reset tidak valid atau sudah kedaluwarsa. Silakan minta link baru.',
+            Password::INVALID_USER => 'Email tidak ditemukan.',
+        ];
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors([
+                'email' => $daftarPesanGagal[$statusReset] ?? 'Gagal mengatur ulang password.',
+            ]);
     }
 }

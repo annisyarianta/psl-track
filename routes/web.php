@@ -40,7 +40,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [
         AuthController::class,
         'login'
-    ])->name('login');
+    ]);
 
     Route::get('/forgot-password', [
         ForgotPasswordController::class,
@@ -145,3 +145,13 @@ Route::middleware([
         ->names('task')
         ->except(['show']);
 });
+
+if (app()->environment('local')) {
+    Route::get('/pratinjau-email-reset', function () {
+        return view('emails.reset-password', [
+            'namaPengguna' => 'Ahmad',
+            'linkResetPassword' => url('/reset-password/token-contoh?email=ahmad@psl.com'),
+            'masaBerlakuMenit' => 60,
+        ]);
+    });
+}

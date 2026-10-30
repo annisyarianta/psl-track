@@ -21,26 +21,24 @@ class ForgotPasswordController extends Controller
     public function sendResetLink(Request $request)
     {
         $request->validate([
-            'email' => [
-                'required',
-                'email',
-            ],
+            'email' => ['required', 'email'],
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $statusPengiriman = Password::sendResetLink($request->only('email'));
 
-        if ($status === Password::RESET_LINK_SENT) {
-
-            return back()->with(
-                'success',
-                'Link reset password telah dikirim ke email Anda.'
-            );
+        if ($statusPengiriman === Password::RESET_LINK_SENT) {
+            return back()->with('success', 'Link reset password telah dikirim ke email Anda.');
         }
 
-        return back()->withErrors([
-            'email' => __($status),
-        ]);
+        $daftarPesanGagal = [
+            Password::INVALID_USER => 'Email tidak terdaftar.',
+            Password::RESET_THROTTLED => 'Terlalu sering meminta link. Silakan coba lagi beberapa saat lagi.',
+        ];
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors([
+                'email' => $daftarPesanGagal[$statusPengiriman] ?? 'Gagal mengirim link reset password.',
+            ]);
     }
 }

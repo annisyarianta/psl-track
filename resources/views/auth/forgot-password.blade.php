@@ -1,83 +1,40 @@
-@extends('layouts.app')
+@extends('layouts.card')
+
+@section('judul', 'Lupa Password')
 
 @section('content')
+    <h3 class="mb-2 fw-semibold">Lupa Password</h3>
+    <p class="text-muted font-size-16">
+        Masukkan email akun Anda untuk mendapatkan link reset password.
+    </p>
 
-<div class="container py-5">
+    @if (session('success'))
+        <div class="alert alert-success text-start mt-4">
+            {{ session('success') }}
+        </div>
+    @endif
 
-    <div class="row justify-content-center">
+    @if ($errors->any())
+        <div class="alert alert-danger text-start mt-4">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
-        <div class="col-md-5">
+    <form action="{{ route('password.email') }}" method="POST" class="mt-4 text-start">
+        @csrf
 
-            <div class="card">
-
-                <div class="card-body p-4">
-
-                    <h4>Lupa Password</h4>
-
-                    <p class="text-muted">
-                        Masukkan email akun Anda untuk
-                        mendapatkan link reset password.
-                    </p>
-
-                    @if(session('success'))
-
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-
-                    @endif
-
-                    @if($errors->any())
-
-                        <div class="alert alert-danger">
-                            {{ $errors->first() }}
-                        </div>
-
-                    @endif
-
-                    <form action="{{ route('password.email') }}"
-                          method="POST">
-
-                        @csrf
-
-                        <div class="mb-3">
-
-                            <label class="form-label">
-                                Email
-                            </label>
-
-                            <input type="email"
-                                   name="email"
-                                   class="form-control"
-                                   required>
-
-                        </div>
-
-                        <button type="submit"
-                                class="btn btn-primary w-100">
-
-                            Kirim Link Reset Password
-
-                        </button>
-
-                    </form>
-
-                    <div class="text-center mt-3">
-
-                        <a href="{{ route('login') }}">
-                            Kembali ke Login
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="mb-4">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" value="{{ old('email') }}" class="form-control"
+                placeholder="Masukkan email akun Anda" required autofocus>
         </div>
 
+        <button type="submit" class="btn btn-primary w-100">
+            Kirim Link Reset Password
+        </button>
+    </form>
+
+    <div class="mt-4">
+        <a href="{{ route('login') }}">Kembali ke Login</a>
     </div>
-
-</div>
-
 @endsection
