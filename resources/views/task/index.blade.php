@@ -26,10 +26,21 @@
             --fc-button-active-bg-color: color-mix(in srgb, var(--bs-primary) 75%, black);
             --fc-button-active-border-color: color-mix(in srgb, var(--bs-primary) 75%, black);
         }
-    
-        #kalender-task .fc-toolbar-title { font-size: 1.1rem; font-weight: 700; }
-        #kalender-task .fc-button { padding: .25rem .6rem; font-size: .8rem; }
-        #kalender-task .fc-event { font-size: .75rem; cursor: pointer; }
+
+        #kalender-task .fc-toolbar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        #kalender-task .fc-button {
+            padding: .25rem .6rem;
+            font-size: .8rem;
+        }
+
+        #kalender-task .fc-event {
+            font-size: .75rem;
+            cursor: pointer;
+        }
     </style>
 
     <div class="main-content">
@@ -82,7 +93,8 @@
                             @if ($bolehMemberiTugas)
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5 class="card-title mb-0 font-size-22">List Task</h5>
-                                    <a href="{{ route('task.create') }}" class="btn btn-primary waves-effect btn-label waves-light">
+                                    <a href="{{ route('task.create') }}"
+                                        class="btn btn-primary waves-effect btn-label waves-light">
                                         <i class="bx bx-plus label-icon"></i> Tambah Task
                                     </a>
                                 </div>
@@ -105,7 +117,7 @@
                                                     $terlambat =
                                                         $task->status !== 'done' && $task->tenggat_waktu->lt(today());
                                                     $apakahPemberiTugas = (int) $task->assigned_by === $idUserLogin;
-                                                    $bolehUbahStatus =
+                                                    $bolehMemperbaruiTask =
                                                         $apakahPemberiTugas ||
                                                         $task->penerimaTugas->contains('id_user', $idUserLogin);
                                                 @endphp
@@ -113,12 +125,11 @@
                                                     <td class="text-center">{{ $loop->iteration }}</td>
                                                     <td>{{ $task->judul_tugas }}
                                                     </td>
-                                                    <td
-                                                        class="{{ $terlambat ? 'text-danger' : '' }} text-center">
+                                                    <td class="{{ $terlambat ? 'text-danger' : '' }} text-center">
                                                         {{ $task->tenggat_waktu->format('d M Y') }}
                                                     </td>
                                                     <td class="text-center" style="min-width: 140px;">
-                                                        @if ($bolehUbahStatus)
+                                                        @if ($bolehMemperbaruiTask)
                                                             <form action="{{ route('task.status', $task->id_task) }}"
                                                                 method="POST">
                                                                 @csrf
@@ -142,21 +153,29 @@
                                                     </td>
                                                     <td class="text-nowrap text-center">
                                                         <button type="button"
-                                                            class="btn btn-sm btn-outline-secondary tombol-detail-task" title="Detail"
+                                                            class="btn btn-sm btn-outline-secondary tombol-detail-task"
+                                                            title="Detail"
                                                             data-detail="{{ json_encode($daftarDetailTask[$task->id_task]) }}">
                                                             <i class="bx bx-info-circle"></i>
                                                         </button>
 
-                                                        @if ($apakahPemberiTugas)
+                                                        @if ($bolehMemperbaruiTask)
                                                             <a href="{{ route('task.edit', $task->id_task) }}"
-                                                                class="btn btn-sm btn-outline-warning" title="Edit"><i class="bx bxs-edit"></i></a>
+                                                                class="btn btn-sm btn-outline-warning" title="Edit">
+                                                                <i class="bx bxs-edit"></i>
+                                                            </a>
+                                                        @endif
+
+                                                        @if ($apakahPemberiTugas)
                                                             <form action="{{ route('task.destroy', $task->id_task) }}"
                                                                 method="POST" class="d-inline"
                                                                 onsubmit="return confirm('Hapus task ini?')">
                                                                 @csrf
                                                                 @method('DELETE')
-                                                                <button type="submit"
-                                                                    class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bx bx-trash"></i></button>
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                                    title="Hapus">
+                                                                    <i class="bx bx-trash"></i>
+                                                                </button>
                                                             </form>
                                                         @endif
                                                     </td>
@@ -176,7 +195,8 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h4 class="modal-title">Detail Task</h4>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body card-body">
                                 <div class="table-responsive">
@@ -211,6 +231,10 @@
                                                 <td id="detail-status"></td>
                                             </tr>
                                             <tr>
+                                                <th scope="row">Hasil</th>
+                                                <td id="detail-hasil" style="white-space: pre-line;"></td>
+                                            </tr>
+                                            <tr>
                                                 <th scope="row">File</th>
                                                 <td id="detail-daftar-file"></td>
                                             </tr>
@@ -233,6 +257,7 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const daftarDetailTask = @json($daftarDetailTask);
             const modalDetailTask = new bootstrap.Modal(document.getElementById('modalDetailTask'));
             const kontainerDaftarPenerima = document.getElementById('detail-daftar-penerima');
             const kontainerDaftarFile = document.getElementById('detail-daftar-file');
@@ -245,6 +270,7 @@
                 document.getElementById('detail-tenggat').textContent = detailTask.tenggatWaktu;
                 document.getElementById('detail-pemberi').textContent = detailTask.pemberiTugas;
                 document.getElementById('detail-status').textContent = detailTask.labelStatus;
+                document.getElementById('detail-hasil').textContent = detailTask.hasilTugas;
 
                 kontainerDaftarPenerima.innerHTML = '';
                 detailTask.daftarPenerima.forEach(function(namaPenerima) {
@@ -268,7 +294,6 @@
                     });
                 }
 
-                // Tombol edit hanya muncul untuk pemberi tugas
                 if (detailTask.urlEdit) {
                     tombolEditDariModal.href = detailTask.urlEdit;
                     tombolEditDariModal.classList.remove('d-none');
@@ -321,6 +346,22 @@
             });
 
             kalenderTask.render();
+
+            const parameterUrl = new URLSearchParams(window.location.search);
+            const idTaskYangDibuka = parameterUrl.get('buka_detail');
+
+            if (idTaskYangDibuka && daftarDetailTask[idTaskYangDibuka]) {
+                tampilkanDetailTask(daftarDetailTask[idTaskYangDibuka]);
+            }
+
+            if (idTaskYangDibuka) {
+                parameterUrl.delete('buka_detail');
+                const sisaParameter = parameterUrl.toString();
+                window.history.replaceState({},
+                    '',
+                    window.location.pathname + (sisaParameter ? '?' + sisaParameter : '')
+                );
+            }
         });
     </script>
 @endsection

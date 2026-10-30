@@ -9,6 +9,13 @@
         $idPenerimaTerpilih = old('penerima_tugas', $task ? $task->penerimaTugas->pluck('id_user')->all() : []);
     @endphp
 
+    <style>
+        /* Tampilan kolom PIC saat terkunci (penerima tugas) */
+        .choices.is-disabled .choices__button {
+            display: none;
+        }
+    </style>
+
     <div class="main-content">
         <div class="page-content">
             <div class="container-fluid">
@@ -31,6 +38,7 @@
                         </div>
                     </div>
                 </div>
+
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul class="mb-0">
@@ -40,6 +48,14 @@
                         </ul>
                     </div>
                 @endif
+
+                @if ($task && !$apakahPemberiTugas)
+                    <div class="alert alert-info">
+                        Anda sebagai penerima tugas hanya dapat mengubah <strong>status</strong>,
+                        <strong>hasil tugas</strong>, dan <strong>file lampiran</strong>.
+                    </div>
+                @endif
+
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
@@ -50,11 +66,12 @@
                                     @if ($task)
                                         @method('PUT')
                                     @endif
+
                                     <div class="row mb-4">
                                         <label class="col-sm-3 col-form-label">Program <span
                                                 class="text-muted">(opsional)</span></label>
                                         <div class="col-sm-9">
-                                            <select name="id_program" class="form-select">
+                                            <select name="id_program" class="form-select" @disabled(!$apakahPemberiTugas)>
                                                 <option value="">-- Tanpa Program (tugas independen) --</option>
                                                 @foreach ($daftarProgram as $program)
                                                     <option value="{{ $program->id_program }}"
@@ -65,11 +82,14 @@
                                             </select>
                                         </div>
                                     </div>
+
                                     <div class="row mb-4">
-                                        <label class="col-sm-3 col-form-label">Judul Tugas <span class="text-danger">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Judul Tugas <span
+                                                class="text-danger">*</span></label>
                                         <div class="col-sm-9">
                                             <input type="text" name="judul_tugas" class="form-control" required
-                                                value="{{ old('judul_tugas', $task->judul_tugas ?? '') }}">
+                                                value="{{ old('judul_tugas', $task->judul_tugas ?? '') }}"
+                                                @disabled(!$apakahPemberiTugas)>
                                         </div>
                                     </div>
 
@@ -77,7 +97,7 @@
                                         <label class="col-sm-3 col-form-label">Deskripsi Tugas <span
                                                 class="text-danger">*</span></label>
                                         <div class="col-sm-9">
-                                            <textarea name="deskripsi_tugas" rows="4" class="form-control" required>{{ old('deskripsi_tugas', $task->deskripsi_tugas ?? '') }}</textarea>
+                                            <textarea name="deskripsi_tugas" rows="4" class="form-control" required @disabled(!$apakahPemberiTugas)>{{ old('deskripsi_tugas', $task->deskripsi_tugas ?? '') }}</textarea>
                                         </div>
                                     </div>
 
@@ -86,9 +106,11 @@
                                                 class="text-danger">*</span></label>
                                         <div class="col-sm-9">
                                             <input type="date" name="tenggat_waktu" class="form-control" required
-                                                value="{{ old('tenggat_waktu', optional($task?->tenggat_waktu)->format('Y-m-d')) }}">
+                                                value="{{ old('tenggat_waktu', optional($task?->tenggat_waktu)->format('Y-m-d')) }}"
+                                                @disabled(!$apakahPemberiTugas)>
                                         </div>
                                     </div>
+
                                     <div class="row mb-4">
                                         <label class="col-sm-3 col-form-label">Status <span
                                                 class="text-danger">*</span></label>
@@ -108,12 +130,14 @@
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="row mb-4">
                                         <label class="col-sm-3 col-form-label">Ditugaskan Kepada <span
                                                 class="text-danger">*</span></label>
                                         <div class="col-sm-9">
                                             <select name="penerima_tugas[]" id="penerima_tugas" class="form-control"
-                                                placeholder="Tambah PIC" data-trigger multiple>
+                                                placeholder="Tambah PIC" data-trigger multiple
+                                                @disabled(!$apakahPemberiTugas)>
                                                 @foreach ($daftarCalonPenerima as $calonPenerima)
                                                     <option value="{{ $calonPenerima->id_user }}"
                                                         {{ in_array($calonPenerima->id_user, $idPenerimaTerpilih) ? 'selected' : '' }}>
@@ -124,36 +148,57 @@
                                         </div>
                                     </div>
 
+                                    @if ($task)
+                                        <div class="row mb-4">
+                                            <label for="hasil_tugas" class="col-sm-3 col-form-label">Hasil Tugas</label>
+                                            <div class="col-sm-9">
+                                                <textarea id="hasil_tugas" name="hasil_tugas" rows="4"
+                                                    class="form-control @error('hasil_tugas') is-invalid @enderror"
+                                                    placeholder="Tuliskan hasil pengerjaan tugas">{{ old('hasil_tugas', $task->hasil_tugas) }}</textarea>
+                                                @error('hasil_tugas')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    @endif
+
                                     <div class="row mb-4">
                                         <label for="fileTask" class="col-sm-3 col-form-label">File Lampiran</label>
                                         <div class="col-sm-9">
                                             <input type="file" id="fileTask" name="file_task[]" class="form-control"
                                                 multiple>
-                                                <div class="form-text">Maksimal 10 MB per file.</div>
+                                            <div class="form-text">Maksimal 10 MB per file.</div>
                                             <ul id="daftarFileBaru" class="list-group mt-2"></ul>
-                                            @if ($task && $task->files->isNotEmpty())
-                                            <ul class="list-group mt-2">
-                                                @foreach ($task->files as $fileTask)
-                                                    <li
-                                                        class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <a href="{{ asset('storage/' . $fileTask->path_file) }}"
-                                                            target="_blank">{{ $fileTask->nama_file }}</a>
-                                                        <div class="form-check mb-0">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                name="hapus_file[]"
-                                                                id="hapusFile{{ $fileTask->id_file_task }}"
-                                                                value="{{ $fileTask->id_file_task }}">
-                                                            <label class="form-check-label"
-                                                                for="hapusFile{{ $fileTask->id_file_task }}">Hapus</label>
-                                                        </div>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        @endif
-                                        </div>
 
-                                        
+                                            @if ($task && $task->files->isNotEmpty())
+                                                <ul class="list-group mt-2">
+                                                    @foreach ($task->files as $fileTask)
+                                                        @php
+                                                            $bolehHapusFile =
+                                                                $apakahPemberiTugas ||
+                                                                (int) $fileTask->uploaded_by === $idUserLogin;
+                                                        @endphp
+                                                        <li
+                                                            class="list-group-item d-flex justify-content-between align-items-center">
+                                                            <a href="{{ asset('storage/' . $fileTask->path_file) }}"
+                                                                target="_blank">{{ $fileTask->nama_file }}</a>
+                                                            @if ($bolehHapusFile)
+                                                                <div class="form-check mb-0">
+                                                                    <input class="form-check-input" type="checkbox"
+                                                                        name="hapus_file[]"
+                                                                        id="hapusFile{{ $fileTask->id_file_task }}"
+                                                                        value="{{ $fileTask->id_file_task }}">
+                                                                    <label class="form-check-label"
+                                                                        for="hapusFile{{ $fileTask->id_file_task }}">Hapus</label>
+                                                                </div>
+                                                            @endif
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            @endif
+                                        </div>
                                     </div>
+
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="d-flex justify-content-end">
@@ -161,6 +206,7 @@
                                                 <button type="submit" class="btn btn-primary w-md ms-3">Simpan</button>
                                             </div>
                                         </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -169,14 +215,15 @@
             </div>
         </div>
     </div>
-    </div>
-    </div>
 
     <script src="{{ asset('assets/libs/choices.js/public/assets/scripts/choices.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const apakahPemberiTugas = @json($apakahPemberiTugas);
+
+            // Kolom penerima tugas (PIC)
             const pilihanPenerimaTugas = document.getElementById('penerima_tugas');
-            new Choices(pilihanPenerimaTugas, {
+            const instansiChoicesPenerimaTugas = new Choices(pilihanPenerimaTugas, {
                 removeItemButton: true,
                 placeholderValue: pilihanPenerimaTugas.getAttribute('placeholder'),
                 searchPlaceholderValue: 'Cari nama...',
@@ -185,6 +232,11 @@
                 itemSelectText: ''
             });
 
+            if (!apakahPemberiTugas) {
+                instansiChoicesPenerimaTugas.disable();
+            }
+
+            // File lampiran baru
             const inputFileTask = document.getElementById('fileTask');
             const daftarFileBaru = document.getElementById('daftarFileBaru');
             let kumpulanFileTerpilih = new DataTransfer();
@@ -225,7 +277,6 @@
             }
 
             inputFileTask.addEventListener('change', function() {
-                // File yang baru dipilih ditambahkan ke kumpulan, jadi pilihan sebelumnya tidak hilang
                 Array.from(inputFileTask.files).forEach(function(file) {
                     kumpulanFileTerpilih.items.add(file);
                 });

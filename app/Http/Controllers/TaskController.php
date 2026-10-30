@@ -6,7 +6,9 @@ use App\Models\FileTask;
 use App\Models\Program;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -55,10 +57,12 @@ class TaskController extends Controller
         $this->pastikanBolehMemberiTugas();
 
         return view('task.form', [
-            'task'               => null,
-            'daftarProgram'      => Program::orderBy('nama_program')->get(),
+            'task'                => null,
+            'daftarProgram'       => Program::orderBy('nama_program')->get(),
             'daftarCalonPenerima' => $this->ambilCalonPenerima(),
-            'daftarStatus'       => Task::DAFTAR_STATUS,
+            'daftarStatus'        => Task::DAFTAR_STATUS,
+            'idUserLogin'         => (int) Auth::user()->id_user,
+            'apakahPemberiTugas'  => true,
         ]);
     }
 
@@ -71,7 +75,7 @@ class TaskController extends Controller
         DB::transaction(function () use ($request, $dataTervalidasi) {
             $task = Task::create([
                 'id_program'      => $dataTervalidasi['id_program'] ?? null,
-                'judul_tugas' => $dataTervalidasi['judul_tugas'],
+                'judul_tugas'     => $dataTervalidasi['judul_tugas'],
                 'deskripsi_tugas' => $dataTervalidasi['deskripsi_tugas'],
                 'tenggat_waktu'   => $dataTervalidasi['tenggat_waktu'],
                 'status'          => $dataTervalidasi['status'],
@@ -79,7 +83,11 @@ class TaskController extends Controller
                 'assigned_at'     => now(),
             ]);
 
-            $task->penerimaTugas()->sync($dataTervalidasi['penerima_tugas']);
+            $idPenerimaTugas = array_map('intval', $dataTervalidasi['penerima_tugas']);
+
+            $task->penerimaTugas()->attach($idPenerimaTugas, [
+                'ditugaskan_pada' => now(),
+            ]);
             $this->simpanFileTask($request, $task);
         });
 
@@ -88,35 +96,61 @@ class TaskController extends Controller
 
     public function edit(Task $task)
     {
-        $this->pastikanPemberiTugas($task);
+        $this->pastikanPemberiAtauPenerimaTugas($task);
+
+        $idUserLogin        = (int) Auth::user()->id_user;
+        $apakahPemberiTugas = $task->apakahPemberiTugas($idUserLogin);
 
         $task->load(['penerimaTugas', 'files']);
 
         return view('task.form', [
-            'task'               => $task,
-            'daftarProgram'      => Program::orderBy('nama_program')->get(),
-            'daftarCalonPenerima' => $this->ambilCalonPenerima(),
-            'daftarStatus'       => Task::DAFTAR_STATUS,
+            'task'                => $task,
+            'daftarProgram'       => Program::orderBy('nama_program')->get(),
+            'daftarCalonPenerima' => $apakahPemberiTugas
+                ? $this->ambilCalonPenerima()
+                : $task->penerimaTugas->sortBy('nama')->values(),
+            'daftarStatus'        => Task::DAFTAR_STATUS,
+            'idUserLogin'         => $idUserLogin,
+            'apakahPemberiTugas'  => $apakahPemberiTugas,
         ]);
     }
 
     public function update(Request $request, Task $task)
     {
-        $this->pastikanPemberiTugas($task);
+        $this->pastikanPemberiAtauPenerimaTugas($task);
 
-        $dataTervalidasi = $this->validasiForm($request);
+        $idUserLogin        = (int) Auth::user()->id_user;
+        $apakahPemberiTugas = $task->apakahPemberiTugas($idUserLogin);
+        $tenggatLama        = Carbon::parse($task->tenggat_waktu)->toDateString();
+        $dataTervalidasi    = $this->validasiForm($request, $apakahPemberiTugas);
 
-        DB::transaction(function () use ($request, $task, $dataTervalidasi) {
-            $task->update([
-                'id_program'      => $dataTervalidasi['id_program'] ?? null,
-                'judul_tugas' => $dataTervalidasi['judul_tugas'],
-                'deskripsi_tugas' => $dataTervalidasi['deskripsi_tugas'],
-                'tenggat_waktu'   => $dataTervalidasi['tenggat_waktu'],
-                'status'          => $dataTervalidasi['status'],
-            ]);
+        DB::transaction(function () use (
+            $request,
+            $task,
+            $dataTervalidasi,
+            $apakahPemberiTugas,
+            $idUserLogin,
+            $tenggatLama
+        ) {
+            if ($apakahPemberiTugas) {
+                $task->update(array_merge([
+                    'id_program'      => $dataTervalidasi['id_program'] ?? null,
+                    'judul_tugas'     => $dataTervalidasi['judul_tugas'],
+                    'deskripsi_tugas' => $dataTervalidasi['deskripsi_tugas'],
+                    'tenggat_waktu'   => $dataTervalidasi['tenggat_waktu'],
+                    'status'          => $dataTervalidasi['status'],
+                ], Arr::only($dataTervalidasi, ['hasil_tugas'])));
 
-            $task->penerimaTugas()->sync($dataTervalidasi['penerima_tugas']);
-            $this->hapusFileTerpilih($request, $task);
+                $this->perbaruiPenerimaTugas($task, $dataTervalidasi['penerima_tugas']);
+
+                if (Carbon::parse($task->tenggat_waktu)->toDateString() !== $tenggatLama) {
+                    $this->resetStatusBacaPengingatTenggat($task);
+                }
+            } else {
+                $task->update(Arr::only($dataTervalidasi, ['status', 'hasil_tugas']));
+            }
+
+            $this->hapusFileTerpilih($request, $task, $apakahPemberiTugas, $idUserLogin);
             $this->simpanFileTask($request, $task);
         });
 
@@ -138,12 +172,7 @@ class TaskController extends Controller
 
     public function updateStatus(Request $request, Task $task)
     {
-        $idUserLogin = (int) Auth::user()->id_user;
-
-        abort_unless(
-            $task->apakahPemberiTugas($idUserLogin) || $task->apakahPenerimaTugas($idUserLogin),
-            403
-        );
+        $this->pastikanPemberiAtauPenerimaTugas($task);
 
         $dataTervalidasi = $request->validate([
             'status' => ['required', Rule::in(array_keys(Task::DAFTAR_STATUS))],
@@ -154,29 +183,72 @@ class TaskController extends Controller
         return back()->with('success', 'Status task diperbarui.');
     }
 
-
     // ---------- Helper ----------
 
-    private function validasiForm(Request $request): array
+    private function validasiForm(Request $request, bool $apakahPemberiTugas = true): array
     {
-        $daftarIdCalonPenerima = $this->ambilCalonPenerima()->pluck('id_user')->all();
-
-        return $request->validate([
-            'id_program'        => ['nullable', 'exists:program,id_program'],
-            'judul_tugas' => ['required', 'string', 'max:255'],
-            'deskripsi_tugas'   => ['required', 'string'],
-            'tenggat_waktu'     => ['required', 'date'],
-            'status'            => ['required', Rule::in(array_keys(Task::DAFTAR_STATUS))],
-            'penerima_tugas'    => ['required', 'array', 'min:1'],
-            'penerima_tugas.*'  => ['integer', Rule::in($daftarIdCalonPenerima)],
-            'file_task'         => ['nullable', 'array'],
-            'file_task.*'       => ['file', 'max:10240'], // 10 MB per file
+        $aturanUntukSemuaPeran = [
+            'status'       => ['required', Rule::in(array_keys(Task::DAFTAR_STATUS))],
+            'hasil_tugas'  => ['nullable', 'string'],
+            'file_task'    => ['nullable', 'array'],
+            'file_task.*'  => ['file', 'max:10240'], // 10 MB per file
             'hapus_file'   => ['nullable', 'array'],
             'hapus_file.*' => ['integer'],
-        ], [
-            'penerima_tugas.required'  => 'Pilih minimal satu penerima tugas.',
-            'penerima_tugas.*.in'      => 'Penerima tugas tidak sesuai dengan hak akses Anda.',
+        ];
+
+        // Penerima tugas tidak mengirim judul, deskripsi, tenggat, program, dan PIC
+        if (! $apakahPemberiTugas) {
+            return $request->validate($aturanUntukSemuaPeran);
+        }
+
+        $daftarIdCalonPenerima = $this->ambilCalonPenerima()->pluck('id_user')->all();
+
+        return $request->validate(array_merge($aturanUntukSemuaPeran, [
+            'id_program'       => ['nullable', 'exists:program,id_program'],
+            'judul_tugas'      => ['required', 'string', 'max:255'],
+            'deskripsi_tugas'  => ['required', 'string'],
+            'tenggat_waktu'    => ['required', 'date'],
+            'penerima_tugas'   => ['required', 'array', 'min:1'],
+            'penerima_tugas.*' => ['integer', Rule::in($daftarIdCalonPenerima)],
+        ]), [
+            'penerima_tugas.required' => 'Pilih minimal satu penerima tugas.',
+            'penerima_tugas.*.in'     => 'Penerima tugas tidak sesuai dengan hak akses Anda.',
         ]);
+    }
+
+    private function perbaruiPenerimaTugas(Task $task, array $daftarIdPenerimaBaru): void
+    {
+        $idPenerimaBaru = array_map('intval', $daftarIdPenerimaBaru);
+
+        $idPenerimaLama = DB::table('pic_task')
+            ->where('id_task', $task->id_task)
+            ->pluck('id_user')
+            ->map(fn($idUser) => (int) $idUser)
+            ->all();
+
+        $idPenerimaDicopot  = array_diff($idPenerimaLama, $idPenerimaBaru);
+        $idPenerimaDitambah = array_diff($idPenerimaBaru, $idPenerimaLama);
+
+        if (! empty($idPenerimaDicopot)) {
+            $task->penerimaTugas()->detach($idPenerimaDicopot);
+        }
+
+        if (! empty($idPenerimaDitambah)) {
+            $task->penerimaTugas()->attach($idPenerimaDitambah, [
+                'ditugaskan_pada' => now(),
+            ]);
+        }
+    }
+
+    private function resetStatusBacaPengingatTenggat(Task $task): void
+    {
+        DB::table('pic_task')
+            ->where('id_task', $task->id_task)
+            ->update([
+                'dibaca_tenggat_3_hari_pada' => null,
+                'dibaca_tenggat_1_hari_pada' => null,
+                'dibaca_terlambat_pada'      => null,
+            ]);
     }
 
     private function simpanFileTask(Request $request, Task $task): void
@@ -194,21 +266,29 @@ class TaskController extends Controller
         }
     }
 
-    private function hapusFileTerpilih(Request $request, Task $task): void
-    {
+    private function hapusFileTerpilih(
+        Request $request,
+        Task $task,
+        bool $apakahPemberiTugas,
+        int $idUserLogin
+    ): void {
         $daftarIdFileDihapus = $request->input('hapus_file', []);
 
         if (empty($daftarIdFileDihapus)) {
             return;
         }
 
-        $task->files()
-            ->whereIn('id_file_task', $daftarIdFileDihapus)
-            ->get()
-            ->each(function (FileTask $fileTask) {
-                Storage::disk('public')->delete($fileTask->path_file);
-                $fileTask->delete();
-            });
+        $queryFile = $task->files()->whereIn('id_file_task', $daftarIdFileDihapus);
+
+        // Penerima hanya boleh menghapus file yang ia unggah sendiri
+        if (! $apakahPemberiTugas) {
+            $queryFile->where('uploaded_by', $idUserLogin);
+        }
+
+        $queryFile->get()->each(function (FileTask $fileTask) {
+            Storage::disk('public')->delete($fileTask->path_file);
+            $fileTask->delete();
+        });
     }
 
     private function ambilCalonPenerima()
@@ -245,12 +325,26 @@ class TaskController extends Controller
         abort_unless($task->apakahPemberiTugas((int) Auth::user()->id_user), 403);
     }
 
+    private function pastikanPemberiAtauPenerimaTugas(Task $task): void
+    {
+        $idUserLogin = (int) Auth::user()->id_user;
+
+        abort_unless(
+            $task->apakahPemberiTugas($idUserLogin) || $task->apakahPenerimaTugas($idUserLogin),
+            403
+        );
+    }
+
     private function susunDetailTask(Task $task, int $idUserLogin): array
     {
+        $apakahPemberiTugas = $task->apakahPemberiTugas($idUserLogin);
+        $apakahPenerimaTugas = $task->penerimaTugas->contains('id_user', $idUserLogin);
+
         return [
             'namaProgram'    => $task->program->nama_program ?? '-',
-            'judulTugas' => $task->judul_tugas,
+            'judulTugas'     => $task->judul_tugas,
             'deskripsiTugas' => $task->deskripsi_tugas,
+            'hasilTugas'     => $task->hasil_tugas ?: '-',
             'tenggatWaktu'   => $task->tenggat_waktu->format('d M Y'),
             'pemberiTugas'   => $task->pemberiTugas->nama ?? '-',
             'daftarPenerima' => $task->penerimaTugas->pluck('nama')->all(),
@@ -259,7 +353,7 @@ class TaskController extends Controller
                 'namaFile' => $fileTask->nama_file,
                 'urlFile'  => asset('storage/' . $fileTask->path_file),
             ])->all(),
-            'urlEdit'        => $task->apakahPemberiTugas($idUserLogin)
+            'urlEdit'        => ($apakahPemberiTugas || $apakahPenerimaTugas)
                 ? route('task.edit', $task->id_task)
                 : null,
         ];
@@ -272,7 +366,7 @@ class TaskController extends Controller
 
         return [
             'id'              => $task->id_task,
-            'title' => Str::limit($task->judul_tugas, 40),
+            'title'           => Str::limit($task->judul_tugas, 40),
             'start'           => $tanggalMulai->toDateString(),
             'end'             => $tanggalSelesai->toDateString(),
             'allDay'          => true,
@@ -281,6 +375,7 @@ class TaskController extends Controller
             'extendedProps'   => $detailTask,
         ];
     }
+
     private function apakahManager(): bool
     {
         return Auth::user()->role === 'manager';

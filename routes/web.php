@@ -25,6 +25,7 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\FilePelaporanController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotifikasiController;
 
 
 Route::get('/', function () {
@@ -146,12 +147,10 @@ Route::middleware([
         ->except(['show']);
 });
 
-if (app()->environment('local')) {
-    Route::get('/pratinjau-email-reset', function () {
-        return view('emails.reset-password', [
-            'namaPengguna' => 'Ahmad',
-            'linkResetPassword' => url('/reset-password/token-contoh?email=ahmad@psl.com'),
-            'masaBerlakuMenit' => 60,
-        ]);
-    });
-}
+Route::middleware('auth')->prefix('notifikasi')->name('notifikasi.')->group(function () {
+    Route::get('/', [NotifikasiController::class, 'daftar'])->name('daftar');
+    Route::post('/tandai-semua-dibaca', [NotifikasiController::class, 'tandaiSemuaDibaca'])->name('tandai-semua-dibaca');
+    Route::get('/{idTask}/{jenisNotifikasi}/buka', [NotifikasiController::class, 'buka'])
+        ->whereNumber('idTask')
+        ->name('buka');
+});

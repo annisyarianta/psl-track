@@ -28,6 +28,7 @@ class Task extends Model
         'deskripsi_tugas',
         'tenggat_waktu',
         'status',
+        'hasil_tugas',
         'assigned_by',
         'assigned_at',
     ];
