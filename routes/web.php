@@ -97,42 +97,97 @@ Route::middleware([
     'auth',
     'force.password.change'
 ])->group(function () {
-    Route::get(
-        '/indikator-kpi/{id_indikator_kpi}/sasaran-inisiatif',
-        [SasaranInisiatifController::class, 'byKpi']
-    )->name('sasaran-inisiatif.by-kpi');
-    Route::get(
-        '/indikator-inisiatif/{id_indikator_inisiatif}/program',
-        [ProgramController::class, 'byInisiatif']
-    )->name('program.by-inisiatif');
-    Route::get(
-        '/indikator-program/{id_indikator_program}/kegiatan',
-        [KegiatanController::class, 'byProgram']
-    )->name('kegiatan.by-program');
-    Route::get(
-        'sub-kegiatan/indikator-kegiatan/{idIndikatorKegiatan}',
-        [SubKegiatanController::class, 'byIndikatorKegiatan']
-    )->name('sub-kegiatan.by-indikator-kegiatan');
+
+    /*
+        |--------------------------------------------------------------------------
+        | Route pemuat data (JSON) per menu KPI Tracker: akses lihat
+        |--------------------------------------------------------------------------
+        */
+    Route::middleware('akses.menu:dir_bagian,lihat')->group(function () {
+        Route::get(
+            '/indikator-kpi/{id_indikator_kpi}/sasaran-inisiatif',
+            [SasaranInisiatifController::class, 'byKpi']
+        )->name('sasaran-inisiatif.by-kpi');
+    });
+
+    Route::middleware('akses.menu:manager,lihat')->group(function () {
+        Route::get(
+            '/indikator-inisiatif/{id_indikator_inisiatif}/program',
+            [ProgramController::class, 'byInisiatif']
+        )->name('program.by-inisiatif');
+    });
+
+    Route::middleware('akses.menu:ass_manager,lihat')->group(function () {
+        Route::get(
+            '/indikator-program/{id_indikator_program}/kegiatan',
+            [KegiatanController::class, 'byProgram']
+        )->name('kegiatan.by-program');
+    });
+
+    Route::middleware('akses.menu:staff,lihat')->group(function () {
+        Route::get(
+            'sub-kegiatan/indikator-kegiatan/{idIndikatorKegiatan}',
+            [SubKegiatanController::class, 'byIndikatorKegiatan']
+        )->name('sub-kegiatan.by-indikator-kegiatan');
+    });
+
+    /*
+        |--------------------------------------------------------------------------
+        | Resource per menu KPI Tracker
+        |--------------------------------------------------------------------------
+        | lihat  : index dan show
+        | kelola : create, store, edit, update, destroy
+        */
+    $daftarResourcePerMenu = [
+        'dir_utama' => [
+            'sasaran-strategis' => SasaranStrategisController::class,
+            'indikator-kpi'     => IndikatorKpiController::class,
+        ],
+        'dir_bagian' => [
+            'sasaran-inisiatif'   => SasaranInisiatifController::class,
+            'indikator-inisiatif' => IndikatorInisiatifController::class,
+        ],
+        'manager' => [
+            'program'           => ProgramController::class,
+            'indikator-program' => IndikatorProgramController::class,
+            'pic-unit'          => PicUnitController::class,
+        ],
+        'ass_manager' => [
+            'kegiatan'           => KegiatanController::class,
+            'indikator-kegiatan' => IndikatorKegiatanController::class,
+            'pic-staff'          => PicStaffController::class,
+        ],
+        'staff' => [
+            'sub-kegiatan'            => SubKegiatanController::class,
+            'indikator-sub-kegiatan'  => IndikatorSubKegiatanController::class,
+        ],
+    ];
+
+    foreach ($daftarResourcePerMenu as $namaMenu => $daftarResource) {
+        foreach ($daftarResource as $uriResource => $kelasController) {
+            Route::middleware("akses.menu:{$namaMenu},lihat")->group(function () use ($uriResource, $kelasController) {
+                Route::resource($uriResource, $kelasController)->only(['index', 'show']);
+            });
+
+            Route::middleware("akses.menu:{$namaMenu},kelola")->group(function () use ($uriResource, $kelasController) {
+                Route::resource($uriResource, $kelasController)->except(['index', 'show']);
+            });
+        }
+    }
+
+    /*
+        |--------------------------------------------------------------------------
+        | Route lain (belum dibatasi per menu)
+        |--------------------------------------------------------------------------
+        */
     Route::patch('task-tracker/{task}/status', [TaskController::class, 'updateStatus'])->name('task.status');
 
-
-
     Route::resource('tahun', TahunController::class);
-    Route::resource('unit', UnitController::class);
-    Route::resource('users', UserController::class);
-    Route::resource('sasaran-strategis', SasaranStrategisController::class);
-    Route::resource('indikator-kpi', IndikatorKpiController::class);
-    Route::resource('sasaran-inisiatif', SasaranInisiatifController::class);
-    Route::resource('indikator-inisiatif', IndikatorInisiatifController::class);
-    Route::resource('program', ProgramController::class);
-    Route::resource('indikator-program', IndikatorProgramController::class);
-    Route::resource('kegiatan', KegiatanController::class);
-    Route::resource('indikator-kegiatan', IndikatorKegiatanController::class);
-    Route::resource('sub-kegiatan', SubKegiatanController::class);
-    Route::resource('indikator-sub-kegiatan', IndikatorSubKegiatanController::class);
+    Route::middleware('akses.menu:master_data,kelola')->group(function () {
+        Route::resource('unit', UnitController::class);
+        Route::resource('users', UserController::class);
+    });
     Route::resource('periode-tw', PeriodeTwController::class);
-    Route::resource('pic-unit', PicUnitController::class);
-    Route::resource('pic-staff', PicStaffController::class);
     Route::resource('monitoring', MonitoringController::class)
         ->only([
             'index',

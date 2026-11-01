@@ -11,13 +11,23 @@ class SubKegiatanController extends Controller
 {
     public function index()
     {
-        $kegiatans = Kegiatan::whereHas('indikatorKegiatan')
-            ->with(['indikatorKegiatan' => fn($query) => $query->withCount('subKegiatan')])
+        $penggunaLogin = auth()->user();
+
+        $kegiatans = Kegiatan::query()
+            ->whereHas('indikatorKegiatan', function ($queryIndikatorKegiatan) use ($penggunaLogin) {
+                $queryIndikatorKegiatan->yangDapatDilihatOleh($penggunaLogin);
+            })
+            ->with(['indikatorKegiatan' => function ($queryIndikatorKegiatan) use ($penggunaLogin) {
+                $queryIndikatorKegiatan
+                    ->withCount('subKegiatan')
+                    ->yangDapatDilihatOleh($penggunaLogin);
+            }])
             ->get();
 
-        $subKegiatan = SubKegiatan::with(
-            'indikatorKegiatan.kegiatan.indikatorProgram'
-        )
+        $subKegiatan = SubKegiatan::with('indikatorKegiatan.kegiatan.indikatorProgram')
+            ->whereHas('indikatorKegiatan', function ($queryIndikatorKegiatan) use ($penggunaLogin) {
+                $queryIndikatorKegiatan->yangDapatDilihatOleh($penggunaLogin);
+            })
             ->orderByDesc('id_sub_kegiatan')
             ->paginate(10);
 
@@ -25,6 +35,24 @@ class SubKegiatanController extends Controller
             'sub_kegiatan.index',
             compact('subKegiatan', 'kegiatans')
         );
+    }
+
+    public function byIndikatorKegiatan($idIndikatorKegiatan)
+    {
+        $penggunaLogin = auth()->user();
+
+        $indikatorKegiatanDapatDilihat = IndikatorKegiatan::query()
+            ->where('id_indikator_kegiatan', $idIndikatorKegiatan)
+            ->yangDapatDilihatOleh($penggunaLogin)
+            ->exists();
+
+        abort_unless($indikatorKegiatanDapatDilihat, 403);
+
+        $daftarSubKegiatan = SubKegiatan::where('id_indikator_kegiatan', $idIndikatorKegiatan)
+            ->with('indikatorSubKegiatan')
+            ->get();
+
+        return response()->json($daftarSubKegiatan);
     }
 
     public function create()
@@ -126,14 +154,5 @@ class SubKegiatanController extends Controller
         return redirect()
             ->route('sub-kegiatan.index')
             ->with('success', 'Sub kegiatan berhasil dihapus.');
-    }
-
-    public function byIndikatorKegiatan($idIndikatorKegiatan)
-    {
-        $daftarSubKegiatan = SubKegiatan::where('id_indikator_kegiatan', $idIndikatorKegiatan)
-            ->with('indikatorSubKegiatan')
-            ->get();
-
-        return response()->json($daftarSubKegiatan);
     }
 }

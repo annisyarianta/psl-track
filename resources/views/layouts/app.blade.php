@@ -121,13 +121,36 @@
                                 <span data-key="t-multi-level">KPI Tracker</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="true">
-                                <li><a href="{{ route('sasaran-strategis.index') }}" data-key="t-level-1-1">Dir.
+                                {{-- <li><a href="{{ route('sasaran-strategis.index') }}" data-key="t-level-1-1">Dir.
                                         Utama</a></li>
-                                <li><a href="{{ route('sasaran-inisiatif.index') }}" data-key="t-level-1-1">Dir. Bagian</a></li>
+                                <li><a href="{{ route('sasaran-inisiatif.index') }}" data-key="t-level-1-1">Dir.
+                                        Bagian</a></li>
                                 <li><a href="{{ route('program.index') }}" data-key="t-level-1-1">Manager</a></li>
-                                <li><a href="{{ route('kegiatan.index') }}" data-key="t-level-1-1">Ass. Manager</a></li>
-                                <li><a href="{{ route('sub-kegiatan.index') }}" data-key="t-level-1-1">Staff</a></li>
-                                <li><a href="{{ route('monitoring.index') }}" data-key="t-level-1-1">Monitoring KPI</a></li>
+                                <li><a href="{{ route('kegiatan.index') }}" data-key="t-level-1-1">Ass. Manager</a>
+                                </li>
+                                <li><a href="{{ route('sub-kegiatan.index') }}" data-key="t-level-1-1">Staff</a></li> --}}
+
+                                @if (auth()->user()->bisaLihatMenu('dir_utama'))
+                                    <li><a href="{{ route('sasaran-strategis.index') }}">Dir. Utama</a></li>
+                                @endif
+
+                                @if (auth()->user()->bisaLihatMenu('dir_bagian'))
+                                    <li><a href="{{ route('sasaran-inisiatif.index') }}">Dir. Bagian</a></li>
+                                @endif
+
+                                @if (auth()->user()->bisaLihatMenu('manager'))
+                                    <li><a href="{{ route('program.index') }}">Manager</a></li>
+                                @endif
+
+                                @if (auth()->user()->bisaLihatMenu('ass_manager'))
+                                    <li><a href="{{ route('kegiatan.index') }}">Ass. Manager</a></li>
+                                @endif
+
+                                @if (auth()->user()->bisaLihatMenu('staff'))
+                                    <li><a href="{{ route('sub-kegiatan.index') }}">Staff</a></li>
+                                @endif
+                                <li><a href="{{ route('monitoring.index') }}" data-key="t-level-1-1">Monitoring
+                                        KPI</a></li>
                             </ul>
                         </li>
 
@@ -138,21 +161,23 @@
                             </a>
                         </li>
 
-                        <li class="menu-title">
-                            Master Data
-                        </li>
-                        <li>
-                            <a href="{{ route('unit.index') }}">
-                                <i class="bx bx-sitemap"></i>
-                                <span>Master Unit</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('users.index') }}">
-                                <i data-feather="users"></i>
-                                <span>User Management</span>
-                            </a>
-                        </li>
+                        @if (auth()->user()->bisaLihatMenu('master_data'))
+                            <li class="menu-title">
+                                Master Data
+                            </li>
+                            <li>
+                                <a href="{{ route('unit.index') }}">
+                                    <i class="bx bx-sitemap"></i>
+                                    <span>Master Unit</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('users.index') }}">
+                                    <i data-feather="users"></i>
+                                    <span>User Management</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
                 <!-- Sidebar -->

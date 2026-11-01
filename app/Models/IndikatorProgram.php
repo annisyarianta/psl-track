@@ -46,4 +46,12 @@ class IndikatorProgram extends Model
             'id_indikator_program'
         );
     }
+
+    public function scopeYangDitugaskanKeUnit($queryIndikatorProgram, int $idUnit)
+    {
+        return $queryIndikatorProgram->whereIn(
+            'id_indikator_program',
+            PicUnit::select('id_indikator_program')->where('id_unit', $idUnit)
+        );
+    }
 }

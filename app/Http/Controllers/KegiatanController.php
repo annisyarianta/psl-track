@@ -12,17 +12,34 @@ class KegiatanController extends Controller
 {
     public function index()
     {
-        $programs = Program::with(['indikatorProgram' => function ($q) {
-            $q->withCount('kegiatan');
-        }])->get();
+        $penggunaLogin = auth()->user();
+        $idUnitAsmen = $penggunaLogin->id_unit;
+        $apakahPenggunaAsmen = $penggunaLogin->role === 'asmen';
 
-        $kegiatan = Kegiatan::with(
-            'indikatorProgram.program.indikatorInisiatif'
-        )
+        $programs = Program::query()
+            ->when($apakahPenggunaAsmen, function ($queryProgram) use ($idUnitAsmen) {
+                $queryProgram->whereHas('indikatorProgram', function ($queryIndikatorProgram) use ($idUnitAsmen) {
+                    $queryIndikatorProgram->yangDitugaskanKeUnit($idUnitAsmen);
+                });
+            })
+            ->with(['indikatorProgram' => function ($queryIndikatorProgram) use ($apakahPenggunaAsmen, $idUnitAsmen) {
+                $queryIndikatorProgram->withCount('kegiatan');
+
+                if ($apakahPenggunaAsmen) {
+                    $queryIndikatorProgram->yangDitugaskanKeUnit($idUnitAsmen);
+                }
+            }])
+            ->get();
+
+        $kegiatan = Kegiatan::query()
+            ->with('indikatorProgram.program.indikatorInisiatif')
+            ->when($apakahPenggunaAsmen, function ($queryKegiatan) use ($idUnitAsmen) {
+                $queryKegiatan->whereHas('indikatorProgram', function ($queryIndikatorProgram) use ($idUnitAsmen) {
+                    $queryIndikatorProgram->yangDitugaskanKeUnit($idUnitAsmen);
+                });
+            })
             ->orderByDesc('id_kegiatan')
             ->paginate(10);
-
-        $idUnitAsmen = auth()->user()->id_unit;
 
         $daftarStaff = $idUnitAsmen
             ? User::where('role', 'staff')
@@ -39,9 +56,20 @@ class KegiatanController extends Controller
 
     public function byProgram($id_indikator_program)
     {
+        $penggunaLogin = auth()->user();
+
+        if ($penggunaLogin->role === 'asmen') {
+            $indikatorProgramDitugaskan = IndikatorProgram::query()
+                ->where('id_indikator_program', $id_indikator_program)
+                ->yangDitugaskanKeUnit($penggunaLogin->id_unit)
+                ->exists();
+
+            abort_unless($indikatorProgramDitugaskan, 403);
+        }
+
         $daftarKegiatan = Kegiatan::where('id_indikator_program', $id_indikator_program)
-            ->with(['indikatorKegiatan' => function ($query) {
-                $query->withCount('subKegiatan')->with('picStaff.user');
+            ->with(['indikatorKegiatan' => function ($queryIndikatorKegiatan) {
+                $queryIndikatorKegiatan->withCount('subKegiatan')->with('picStaff.user');
             }])
             ->get();
 
@@ -137,7 +165,7 @@ class KegiatanController extends Controller
                 ->route('kegiatan.index')
                 ->with('error_hapus', 'Kegiatan tidak dapat dihapus karena masih memiliki indikator kegiatan turunan.');
         }
-        
+
         $kegiatan->delete();
 
         return redirect()

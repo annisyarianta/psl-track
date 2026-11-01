@@ -118,4 +118,14 @@ class User extends Authenticatable
             'id_user'
         );
     }
+
+    public function bisaLihatMenu(string $namaMenu): bool
+    {
+        return in_array($namaMenu, config("hak_akses.{$this->role}.lihat", []));
+    }
+
+    public function bisaKelolaMenu(string $namaMenu): bool
+    {
+        return in_array($namaMenu, config("hak_akses.{$this->role}.kelola", []));
+    }
 }

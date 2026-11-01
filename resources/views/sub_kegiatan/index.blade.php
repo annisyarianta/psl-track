@@ -7,7 +7,7 @@
 @section('content')
 
     @php
-        $canManage = in_array(auth()->user()->role, ['staff', 'manager']);
+        $bisaKelolaMenuIni = auth()->user()->bisaKelolaMenu('staff');
     @endphp
 
     @if (session('success'))
@@ -76,7 +76,8 @@
                             <div class="card-body p-0">
                                 @forelse ($kegiatans as $kegiatan)
                                     @if ($kegiatan->indikatorKegiatan->count())
-                                        <div class="px-3 pt-3 pb-1 text-primary small">{{ $kegiatan->nama_kegiatan }}</div>
+                                        <div class="px-3 pt-3 pb-1 text-primary small">{{ $kegiatan->nama_kegiatan }}
+                                        </div>
                                         <div class="list-group list-group-flush">
                                             @foreach ($kegiatan->indikatorKegiatan as $ind)
                                                 <a href="#" class="list-group-item list-group-item-action js-parent"
@@ -101,6 +102,7 @@
                                     <div class="text-center text-muted p-4">Belum terdapat Indikator Kegiatan dari Ass.
                                         Manager.</div>
                                 @endforelse
+
                             </div>
                         </div>
                     </div>
@@ -111,7 +113,8 @@
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <div>
                                     <h5 class="card-title mb-0">Sub Kegiatan</h5>
-                                    <p class="text-muted mb-0" id="subKanan">Turunan dari Indikator Kegiatan yang dipilih
+                                    <p class="text-muted mb-0" id="subKanan">Turunan dari Indikator Kegiatan yang
+                                        dipilih
                                     </p>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
@@ -128,7 +131,7 @@
                     </div>
                 </div>
 
-                @if ($canManage)
+                @if ($bisaKelolaMenuIni)
                     {{-- MODAL SUB KEGIATAN (tambah) --}}
                     <div class="modal fade" id="tambahSubKegiatan" data-bs-backdrop="static" data-bs-keyboard="false"
                         tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -155,7 +158,8 @@
                                             </div>
                                         </div>
                                         <div class="row mb-2">
-                                            <label for="isi_sub_kegiatan" class="col-sm-3 col-form-label">Isi Sub Kegiatan
+                                            <label for="isi_sub_kegiatan" class="col-sm-3 col-form-label">Isi Sub
+                                                Kegiatan
                                             </label>
                                             <div class="col-sm-9">
                                                 <textarea class="form-control" id="isi_sub_kegiatan" name="isi_sub_kegiatan" rows="4">{{ old('isi_sub_kegiatan') }}</textarea>
@@ -190,7 +194,8 @@
                                     @method('PUT')
                                     <div class="modal-body">
                                         <div class="row mb-3">
-                                            <label for="edit_judul_sub_kegiatan" class="col-sm-3 col-form-label">Judul Sub
+                                            <label for="edit_judul_sub_kegiatan" class="col-sm-3 col-form-label">Judul
+                                                Sub
                                                 Kegiatan
                                                 <span class="text-danger">*</span></label>
                                             <div class="col-sm-9">
@@ -272,7 +277,8 @@
                         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="judulEditIndikatorSubKegiatan">Edit Indikator Sub Kegiatan
+                                    <h5 class="modal-title" id="judulEditIndikatorSubKegiatan">Edit Indikator Sub
+                                        Kegiatan
                                     </h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
@@ -282,8 +288,7 @@
                                     @method('PUT')
                                     <div class="modal-body">
                                         <div class="row mb-3">
-                                            <label for="edit_nama_indikator_sub_kegiatan"
-                                                class="col-sm-3 col-form-label">
+                                            <label for="edit_nama_indikator_sub_kegiatan" class="col-sm-3 col-form-label">
                                                 Indikator Sub
                                                 Kegiatan <span class="text-danger">*</span></label>
                                             <div class="col-sm-9">
@@ -323,7 +328,7 @@
 
     <script>
         (function() {
-            const canManage = @json($canManage);
+            const bisaKelolaMenuIni = @json($bisaKelolaMenuIni);
 
             const routes = {
                 items: "{{ route('sub-kegiatan.by-indikator-kegiatan', '__ID__') }}",
@@ -429,53 +434,53 @@
                                 <span class="flex-grow-1 fw-medium">${esc(it[F.itemNama])}</span>
                                 <span class="text-muted small text-nowrap flex-shrink-0 ms-3 me-3">${inds.length} indikator</span>
                             </button>
-                            ${canManage ? `
-                                    <div class="dropdown border-start px-2">
-                                        <button class="btn btn-sm" type="button"
-                                                data-bs-toggle="dropdown"
-                                                aria-expanded="false" title="Aksi ${esc(labelItem)}">
-                                            <i class="bx bx-dots-vertical-rounded font-size-20"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li>
-                                                <button type="button" class="dropdown-item js-edit-sub-kegiatan" data-id="${id}">
-                                                    <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
-                                                </button>
-                                            </li>
-                                            <li>
-                                                <button type="button" class="dropdown-item text-danger js-hapus-sub-kegiatan" data-id="${id}">
-                                                    <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>` : ''}
+                            ${bisaKelolaMenuIni ? `
+                                                                                            <div class="dropdown border-start px-2">
+                                                                                                <button class="btn btn-sm" type="button"
+                                                                                                        data-bs-toggle="dropdown"
+                                                                                                        aria-expanded="false" title="Aksi ${esc(labelItem)}">
+                                                                                                    <i class="bx bx-dots-vertical-rounded font-size-20"></i>
+                                                                                                </button>
+                                                                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                                                                    <li>
+                                                                                                        <button type="button" class="dropdown-item js-edit-sub-kegiatan" data-id="${id}">
+                                                                                                            <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
+                                                                                                        </button>
+                                                                                                    </li>
+                                                                                                    <li>
+                                                                                                        <button type="button" class="dropdown-item text-danger js-hapus-sub-kegiatan" data-id="${id}">
+                                                                                                            <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
+                                                                                                        </button>
+                                                                                                    </li>
+                                                                                                </ul>
+                                                                                            </div>` : ''}
                         </h2>
                         <div id="item${id}" class="accordion-collapse collapse">
                             <div class="accordion-body">
                                 <div class="mb-3 text-muted small" style="white-space: pre-line;">${esc(it[F.itemIsi])}</div>
 
                                 ${inds.map((n, indeksIndikator) => `
-                                        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                            <div class="d-flex gap-2">
-                                                <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>
-                                                <div>
-                                                    <div>${esc(n[F.indNama])}</div>
-                                                    <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
-                                                </div>
-                                            </div>
-                                            ${canManage ? `
+                                                                                                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                                                                                                    <div class="d-flex gap-2">
+                                                                                                        <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>
+                                                                                                        <div>
+                                                                                                            <div>${esc(n[F.indNama])}</div>
+                                                                                                            <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    ${bisaKelolaMenuIni ? `
                                             <div class="d-flex gap-1">
                                                 <button class="btn btn-sm btn-light js-edit-indikator" data-item="${id}" data-id="${n[F.indId]}"><i class="mdi mdi-pencil"></i></button>
                                                 <button class="btn btn-sm btn-light js-hapus-indikator" data-id="${n[F.indId]}"><i class="mdi mdi-delete"></i></button>
                                             </div>` : ''}
-                                        </div>`).join('')}
+                                                                                                </div>`).join('')}
 
-                                ${canManage ? `
-                                        <div class="mt-2">
-                                            <button class="btn btn-link btn-sm px-0 js-tambah-indikator" data-bs-toggle="modal" data-bs-target="#tambahIndikatorSubKegiatan" data-item="${id}">
-                                                <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
-                                            </button>
-                                        </div>` : ''}
+                                ${bisaKelolaMenuIni ? `
+                                                                                                <div class="mt-2">
+                                                                                                    <button class="btn btn-link btn-sm px-0 js-tambah-indikator" data-bs-toggle="modal" data-bs-target="#tambahIndikatorSubKegiatan" data-item="${id}">
+                                                                                                        <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
+                                                                                                    </button>
+                                                                                                </div>` : ''}
                             </div>
                         </div>
                     </div>`;
@@ -491,7 +496,7 @@
                 if (el) selectParent(el);
             }
 
-            if (!canManage) {
+            if (!bisaKelolaMenuIni) {
                 restoreSelection();
                 return;
             }

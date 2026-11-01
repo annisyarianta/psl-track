@@ -7,7 +7,7 @@
 @section('content')
 
     @php
-        $canManage = in_array(auth()->user()->role, ['asmen', 'manager']);
+        $bisaKelolaMenuIni = auth()->user()->bisaKelolaMenu('ass_manager');
     @endphp
 
     @if (session('success'))
@@ -130,7 +130,7 @@
                     </div>
                 </div>
 
-                @if ($canManage)
+                @if ($bisaKelolaMenuIni)
                     {{-- MODAL KEGIATAN (tambah) --}}
                     <div class="modal fade" id="tambahKegiatan" data-bs-backdrop="static" data-bs-keyboard="false"
                         tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -289,8 +289,7 @@
                                             </div>
                                         </div>
                                         <div class="row mb-3">
-                                            <label
-                                                for="edit_target_asmen"
+                                            <label for="edit_target_asmen"
                                                 class="col-sm-3
                                                 col-form-label">Target</label>
                                             <div class="col-sm-9">
@@ -336,7 +335,7 @@
     <script src="{{ asset('assets/libs/choices.js/public/assets/scripts/choices.min.js') }}"></script>
     <script>
         (function() {
-            const canManage = @json($canManage);
+            const bisaKelolaMenuIni = @json($bisaKelolaMenuIni);
 
             const routes = {
                 items: "{{ route('kegiatan.by-program', '__ID__') }}",
@@ -444,56 +443,56 @@
                         <span class="flex-grow-1 fw-medium">${esc(it[F.itemNama])}</span>
                         <span class="text-muted small me-3">${inds.length} indikator</span>
                     </button>
-                    ${canManage ? `
-                                            <div class="dropdown border-start px-2">
-                                                <button class="btn btn-sm" type="button"
-                                                        data-bs-toggle="dropdown"
-                                                        aria-expanded="false" title="Aksi ${esc(labelItem)}">
-                                                    <i class="bx bx-dots-vertical-rounded font-size-20"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li>
-                                                        <button type="button" class="dropdown-item js-edit-kegiatan" data-id="${id}">
-                                                            <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button type="button" class="dropdown-item text-danger js-hapus-kegiatan" data-id="${id}">
-                                                            <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>` : ''}
+                    ${bisaKelolaMenuIni ? `
+                                                <div class="dropdown border-start px-2">
+                                                    <button class="btn btn-sm" type="button"
+                                                            data-bs-toggle="dropdown"
+                                                            aria-expanded="false" title="Aksi ${esc(labelItem)}">
+                                                        <i class="bx bx-dots-vertical-rounded font-size-20"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li>
+                                                            <button type="button" class="dropdown-item js-edit-kegiatan" data-id="${id}">
+                                                                <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item text-danger js-hapus-kegiatan" data-id="${id}">
+                                                                <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>` : ''}
                 </h2>
                 <div id="item${id}" class="accordion-collapse collapse">
                     <div class="accordion-body">
                         ${inds.map((n, indeksIndikator) => `
-                                            <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                                <div class="d-flex gap-2">
-                                                    <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>                                            <div>
-                                                        <div>${esc(n[F.indNama])}</div>
-                                                        <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
-                                                        <div class="text-muted small">PIC : ${
-                                                            (n.pic_staff || []).length
-                                                                ? n.pic_staff.map((picStaff) => {
-                                                                    const namaStaffLengkap = picStaff.user ? picStaff.user.nama : '';
-                                                                    return `<span class="badge bg-info-subtle rounded-pill text-info" title="${esc(namaStaffLengkap)}">${esc(ambilKataAwal(namaStaffLengkap, 2))}</span>`;
-                                                                }).join(' ')
-                                                                : '-'
-                                                        }</div>
+                                                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                                                    <div class="d-flex gap-2">
+                                                        <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>                                            <div>
+                                                            <div>${esc(n[F.indNama])}</div>
+                                                            <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
+                                                            <div class="text-muted small">PIC : ${
+                                                                (n.pic_staff || []).length
+                                                                    ? n.pic_staff.map((picStaff) => {
+                                                                        const namaStaffLengkap = picStaff.user ? picStaff.user.nama : '';
+                                                                        return `<span class="badge bg-info-subtle rounded-pill text-info" title="${esc(namaStaffLengkap)}">${esc(ambilKataAwal(namaStaffLengkap, 2))}</span>`;
+                                                                    }).join(' ')
+                                                                    : '-'
+                                                            }</div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                ${canManage ? `
+                                                    ${bisaKelolaMenuIni ? `
                             <div class="d-flex gap-1">
                                 <button class="btn btn-sm btn-light js-edit-indikator" data-item="${id}" data-id="${n[F.indId]}"><i class="mdi mdi-pencil"></i></button>
                                 <button class="btn btn-sm btn-light js-hapus-indikator" data-id="${n[F.indId]}"><i class="mdi mdi-delete"></i></button>
                             </div>` : ''}
-                                                                                </div>`).join('')}
+                                                                                    </div>`).join('')}
 
-                        ${canManage ? `
-                                                                                <button class="btn btn-link btn-sm px-0 mt-2 js-tambah-indikator" data-bs-toggle="modal" data-bs-target="#tambahIndikatorKegiatan" data-item="${id}">
-                                                                                    <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
-                                                                                </button>` : ''}
+                        ${bisaKelolaMenuIni ? `
+                                                                                    <button class="btn btn-link btn-sm px-0 mt-2 js-tambah-indikator" data-bs-toggle="modal" data-bs-target="#tambahIndikatorKegiatan" data-item="${id}">
+                                                                                        <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
+                                                                                    </button>` : ''}
                     </div>
                 </div>
             </div>`;
@@ -509,7 +508,7 @@
                 if (el) selectParent(el);
             }
 
-            if (!canManage) {
+            if (!bisaKelolaMenuIni) {
                 restoreSelection();
                 return;
             }
