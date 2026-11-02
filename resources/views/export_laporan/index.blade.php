@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Export Laporan | PSL Track
+    Export Data | PSL Track
 @endsection
 
 @section('content')
@@ -20,40 +20,49 @@
         <div class="page-content">
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title mb-3">Export Laporan KPI</h5>
+                    <div class="col-12">
+                        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                            <h4 class="mb-sm-0">
+                                Ekspor Data Laporan
+                            </h4>
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col-lg-6">
+                                <div class="card shadow-sm">
+                                    <div class="card-body">
+                                        <form method="GET">
+                                            <div class="mb-4">
+                                                <label for="filterTahun" class="form-label">Tahun</label>
+                                                <select name="id_tahun" id="filterTahun" class="form-select" required>
+                                                    <option value="">Pilih tahun</option>
+                                                    @foreach ($daftarTahun as $tahun)
+                                                        <option value="{{ $tahun->id_tahun }}">{{ $tahun->tahun }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="mb-4">
+                                                <label for="filterUnit" class="form-label">Unit</label>
+                                                <select name="id_unit" id="filterUnit" class="form-select">
+                                                    <option value="">Semua unit</option>
+                                                    @foreach ($daftarUnit as $unit)
+                                                        <option value="{{ $unit->id_unit }}">{{ $unit->nama_unit }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
 
-                                <form method="GET">
-                                    <div class="mb-3">
-                                        <label for="filterTahun" class="form-label">Tahun</label>
-                                        <select name="id_tahun" id="filterTahun" class="form-select" required>
-                                            <option value="">Pilih tahun</option>
-                                            @foreach ($daftarTahun as $tahun)
-                                                <option value="{{ $tahun->id_tahun }}">{{ $tahun->tahun }}</option>
-                                            @endforeach
-                                        </select>
+                                            <div class="d-flex justify-content-end">
+                                                <button type="submit" formaction="{{ route('export-laporan.pdf') }}"
+                                                    class="btn btn-danger waves-effect btn-label waves-light">
+                                                    <i class="bx bxs-file-pdf label-icon"></i> Generate PDF
+                                                </button>
+                                                <button type="submit" formaction="{{ route('export-laporan.excel') }}"
+                                                    class="btn btn-success waves-effect btn-label waves-light ms-3">
+                                                    <i class="bx bx-table label-icon"></i> Generate Excel
+                                                </button>
+                                            </div>
+                                        </form>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="filterUnit" class="form-label">Unit</label>
-                                        <select name="id_unit" id="filterUnit" class="form-select">
-                                            <option value="">Semua unit</option>
-                                            @foreach ($daftarUnit as $unit)
-                                                <option value="{{ $unit->id_unit }}">{{ $unit->nama_unit }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <button type="submit" formaction="{{ route('export-laporan.pdf') }}"
-                                        class="btn btn-danger">
-                                        <i class="mdi mdi-file-pdf-box"></i> Generate PDF
-                                    </button>
-                                    <button type="submit" formaction="{{ route('export-laporan.excel') }}"
-                                        class="btn btn-success">
-                                        <i class="mdi mdi-file-excel-box"></i> Generate Excel
-                                    </button>
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>

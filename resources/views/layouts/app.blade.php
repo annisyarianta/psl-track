@@ -121,15 +121,6 @@
                                 <span data-key="t-multi-level">KPI Tracker</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="true">
-                                {{-- <li><a href="{{ route('sasaran-strategis.index') }}" data-key="t-level-1-1">Dir.
-                                        Utama</a></li>
-                                <li><a href="{{ route('sasaran-inisiatif.index') }}" data-key="t-level-1-1">Dir.
-                                        Bagian</a></li>
-                                <li><a href="{{ route('program.index') }}" data-key="t-level-1-1">Manager</a></li>
-                                <li><a href="{{ route('kegiatan.index') }}" data-key="t-level-1-1">Ass. Manager</a>
-                                </li>
-                                <li><a href="{{ route('sub-kegiatan.index') }}" data-key="t-level-1-1">Staff</a></li> --}}
-
                                 @if (auth()->user()->bisaLihatMenu('dir_utama'))
                                     <li><a href="{{ route('sasaran-strategis.index') }}">Dir. Utama</a></li>
                                 @endif
@@ -151,11 +142,12 @@
                                 @endif
                                 <li><a href="{{ route('monitoring.index') }}" data-key="t-level-1-1">Monitoring
                                         KPI</a></li>
-                                <li><a href="{{ route('export-laporan.index') }}">Export Laporan</a></li>
-
                             </ul>
                         </li>
 
+                        <li><a href="{{ route('export-laporan.index') }}"><i class="bx bx-cloud-download
+                            "></i>
+                            <span>Export Data</span></a></li>
                         <li>
                             <a href="{{ route('task.index') }}">
                                 <i class="bx bx-task"></i>
