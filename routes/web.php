@@ -26,7 +26,7 @@ use App\Http\Controllers\FilePelaporanController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotifikasiController;
-
+use App\Http\Controllers\ExportLaporanController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -208,4 +208,10 @@ Route::middleware('auth')->prefix('notifikasi')->name('notifikasi.')->group(func
     Route::get('/{idTask}/{jenisNotifikasi}/buka', [NotifikasiController::class, 'buka'])
         ->whereNumber('idTask')
         ->name('buka');
+});
+
+Route::prefix('export-laporan')->name('export-laporan.')->group(function () {
+    Route::get('/', [ExportLaporanController::class, 'index'])->name('index');
+    Route::get('/pdf', [ExportLaporanController::class, 'unduhPdf'])->name('pdf');
+    Route::get('/excel', [ExportLaporanController::class, 'unduhExcel'])->name('excel');
 });

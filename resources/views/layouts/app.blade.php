@@ -151,6 +151,8 @@
                                 @endif
                                 <li><a href="{{ route('monitoring.index') }}" data-key="t-level-1-1">Monitoring
                                         KPI</a></li>
+                                <li><a href="{{ route('export-laporan.index') }}">Export Laporan</a></li>
+
                             </ul>
                         </li>
 
