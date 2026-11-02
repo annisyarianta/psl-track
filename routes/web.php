@@ -210,7 +210,7 @@ Route::middleware('auth')->prefix('notifikasi')->name('notifikasi.')->group(func
         ->name('buka');
 });
 
-Route::prefix('export-laporan')->name('export-laporan.')->group(function () {
+Route::middleware('auth')->prefix('export-laporan')->name('export-laporan.')->group(function () {
     Route::get('/', [ExportLaporanController::class, 'index'])->name('index');
     Route::get('/pdf', [ExportLaporanController::class, 'unduhPdf'])->name('pdf');
     Route::get('/excel', [ExportLaporanController::class, 'unduhExcel'])->name('excel');
