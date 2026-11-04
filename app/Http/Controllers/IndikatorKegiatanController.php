@@ -145,7 +145,7 @@ class IndikatorKegiatanController extends Controller
                 ->route('kegiatan.index')
                 ->with('error_hapus', 'Indikator kegiatan tidak dapat dihapus karena masih memiliki turunan.');
         }
-        
+
         DB::transaction(function () use ($indikatorKegiatan) {
             $indikatorKegiatan->picStaff()->delete();
             $indikatorKegiatan->delete();
@@ -159,19 +159,28 @@ class IndikatorKegiatanController extends Controller
 
     private function sinkronkanPicStaff(IndikatorKegiatan $indikatorKegiatan, array $daftarIdStaffBaru): void
     {
-        $daftarIdStaffLama = $indikatorKegiatan->picStaff()->pluck('id_user')->all();
+        $idAsmenYangLogin = auth()->user()->id_user;
 
-        $daftarIdStaffDihapus = array_diff($daftarIdStaffLama, $daftarIdStaffBaru);
+        // Hanya PIC milik asmen yang sedang login
+        $daftarIdStaffLama = $indikatorKegiatan->picStaff()
+            ->where('assigned_by', $idAsmenYangLogin)
+            ->pluck('id_user')
+            ->all();
+
+        $daftarIdStaffDihapus  = array_diff($daftarIdStaffLama, $daftarIdStaffBaru);
         $daftarIdStaffDitambah = array_diff($daftarIdStaffBaru, $daftarIdStaffLama);
 
         if ($daftarIdStaffDihapus) {
-            $indikatorKegiatan->picStaff()->whereIn('id_user', $daftarIdStaffDihapus)->delete();
+            $indikatorKegiatan->picStaff()
+                ->where('assigned_by', $idAsmenYangLogin)
+                ->whereIn('id_user', $daftarIdStaffDihapus)
+                ->delete();
         }
 
         foreach ($daftarIdStaffDitambah as $idStaff) {
             $indikatorKegiatan->picStaff()->create([
                 'id_user'     => $idStaff,
-                'assigned_by' => auth()->user()->id_user,
+                'assigned_by' => $idAsmenYangLogin,
                 'assigned_at' => now(),
             ]);
         }

@@ -93,10 +93,8 @@
                                             data-id="{{ $sasaran->id_sasaran_strategis }}">
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-sm flex-shrink-0 me-3">
-                                                    <div
-                                                        class="avatar-title rounded bg-primary text-white fw-semibold">
-                                                        {{ str_pad(($sasaranStrategis->firstItem() ?? 1) + $index, 2, '0', STR_PAD_LEFT) }}
-                                                    </div>
+                                                    <div class="avatar-title rounded bg-primary text-white fw-semibold">
+                                                        {{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }} </div>
                                                 </div>
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <h5 class="font-size-14 mb-1 text-truncate">
@@ -407,7 +405,7 @@
     </form>
 
     @php
-        $sasaranData = $sasaranStrategis->getCollection()->mapWithKeys(function ($s) {
+        $sasaranData = $sasaranStrategis->mapWithKeys(function ($s) {
             return [
                 $s->id_sasaran_strategis => [
                     'nama' => $s->nama_sasaran_strategis,

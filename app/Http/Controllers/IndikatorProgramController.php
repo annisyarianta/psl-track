@@ -67,6 +67,7 @@ class IndikatorProgramController extends Controller
             'periode_pengukuran' => [
                 'required',
                 Rule::in([
+                    'bulanan',
                     'triwulan',
                     'semester',
                     'tahunan',
@@ -137,6 +138,7 @@ class IndikatorProgramController extends Controller
             'periode_pengukuran' => [
                 'required',
                 Rule::in([
+                    'bulanan',
                     'triwulan',
                     'semester',
                     'tahunan',

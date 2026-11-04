@@ -399,9 +399,9 @@
                             <h2 class="accordion-header d-flex align-items-center">
                                 <button class="accordion-button collapsed" type="button"
                                         data-bs-toggle="collapse" data-bs-target="#item${id}">
-                                    <span class="badge bg-primary me-2">${String(i + 1).padStart(2, '0')}</span>
+                                    <span class="badge bg-primary me-2 flex-shrink-0">${String(i + 1).padStart(2, '0')}</span>
                                     <span class="flex-grow-1 fw-medium">${esc(it[F.itemNama])}</span>
-                                    <span class="text-muted small me-3">${inds.length} indikator</span>
+                                    <span class="text-muted small text-nowrap flex-shrink-0 ms-3 me-3">${inds.length} indikator</span>
                                 </button>
                                 ${canManage ? `
                                         <div class="dropdown border-start px-2">

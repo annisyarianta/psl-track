@@ -435,52 +435,52 @@
                                 <span class="text-muted small text-nowrap flex-shrink-0 ms-3 me-3">${inds.length} indikator</span>
                             </button>
                             ${bisaKelolaMenuIni ? `
-                                                                                            <div class="dropdown border-start px-2">
-                                                                                                <button class="btn btn-sm" type="button"
-                                                                                                        data-bs-toggle="dropdown"
-                                                                                                        aria-expanded="false" title="Aksi ${esc(labelItem)}">
-                                                                                                    <i class="bx bx-dots-vertical-rounded font-size-20"></i>
-                                                                                                </button>
-                                                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                                                    <li>
-                                                                                                        <button type="button" class="dropdown-item js-edit-sub-kegiatan" data-id="${id}">
-                                                                                                            <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
-                                                                                                        </button>
-                                                                                                    </li>
-                                                                                                    <li>
-                                                                                                        <button type="button" class="dropdown-item text-danger js-hapus-sub-kegiatan" data-id="${id}">
-                                                                                                            <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
-                                                                                                        </button>
-                                                                                                    </li>
-                                                                                                </ul>
-                                                                                            </div>` : ''}
+                                                                                                <div class="dropdown border-start px-2">
+                                                                                                    <button class="btn btn-sm" type="button"
+                                                                                                            data-bs-toggle="dropdown"
+                                                                                                            aria-expanded="false" title="Aksi ${esc(labelItem)}">
+                                                                                                        <i class="bx bx-dots-vertical-rounded font-size-20"></i>
+                                                                                                    </button>
+                                                                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                                                                        <li>
+                                                                                                            <button type="button" class="dropdown-item js-edit-sub-kegiatan" data-id="${id}">
+                                                                                                                <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
+                                                                                                            </button>
+                                                                                                        </li>
+                                                                                                        <li>
+                                                                                                            <button type="button" class="dropdown-item text-danger js-hapus-sub-kegiatan" data-id="${id}">
+                                                                                                                <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
+                                                                                                            </button>
+                                                                                                        </li>
+                                                                                                    </ul>
+                                                                                                </div>` : ''}
                         </h2>
                         <div id="item${id}" class="accordion-collapse collapse">
                             <div class="accordion-body">
                                 <div class="mb-3 text-muted small" style="white-space: pre-line;">${esc(it[F.itemIsi])}</div>
 
                                 ${inds.map((n, indeksIndikator) => `
-                                                                                                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                                                                                    <div class="d-flex gap-2">
-                                                                                                        <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>
-                                                                                                        <div>
-                                                                                                            <div>${esc(n[F.indNama])}</div>
-                                                                                                            <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
+                                                                                                    <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                                                                                                        <div class="d-flex gap-2">
+                                                                                                            <span class="badge bg-info-subtle text-info align-self-start">${String(indeksIndikator + 1).padStart(2, '0')}</span>
+                                                                                                            <div>
+                                                                                                                <div>${esc(n[F.indNama])}</div>
+                                                                                                                <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
+                                                                                                            </div>
                                                                                                         </div>
-                                                                                                    </div>
-                                                                                                    ${bisaKelolaMenuIni ? `
+                                                                                                        ${bisaKelolaMenuIni ? `
                                             <div class="d-flex gap-1">
                                                 <button class="btn btn-sm btn-light js-edit-indikator" data-item="${id}" data-id="${n[F.indId]}"><i class="mdi mdi-pencil"></i></button>
                                                 <button class="btn btn-sm btn-light js-hapus-indikator" data-id="${n[F.indId]}"><i class="mdi mdi-delete"></i></button>
                                             </div>` : ''}
-                                                                                                </div>`).join('')}
+                                                                                                    </div>`).join('')}
 
                                 ${bisaKelolaMenuIni ? `
-                                                                                                <div class="mt-2">
-                                                                                                    <button class="btn btn-link btn-sm px-0 js-tambah-indikator" data-bs-toggle="modal" data-bs-target="#tambahIndikatorSubKegiatan" data-item="${id}">
-                                                                                                        <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
-                                                                                                    </button>
-                                                                                                </div>` : ''}
+                                                                                                    <div class="mt-2">
+                                                                                                        <button class="btn btn-link btn-sm px-0 js-tambah-indikator" data-bs-toggle="modal" data-bs-target="#tambahIndikatorSubKegiatan" data-item="${id}">
+                                                                                                            <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
+                                                                                                        </button>
+                                                                                                    </div>` : ''}
                             </div>
                         </div>
                     </div>`;

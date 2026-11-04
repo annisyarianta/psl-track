@@ -16,7 +16,7 @@ class SasaranStrategisController extends Controller
         ])
             ->withCount('indikatorKpi')
             ->orderBy('id_sasaran_strategis')
-            ->paginate(10);
+            ->get();
 
         $tahunList = Tahun::where('tahun', '<=', now()->year)
             ->orderByDesc('tahun')

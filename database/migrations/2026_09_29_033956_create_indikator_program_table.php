@@ -22,6 +22,7 @@ return new class extends Migration
             ]);
 
             $table->enum('periode_pengukuran', [
+                'bulanan',
                 'triwulan',
                 'semester',
                 'tahunan',
