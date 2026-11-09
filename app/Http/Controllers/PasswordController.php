@@ -12,7 +12,7 @@ class PasswordController extends Controller
      */
     public function edit()
     {
-        return view('password.change');
+        return view('password.change-default');
     }
 
     /**

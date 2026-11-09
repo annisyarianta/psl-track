@@ -1,65 +1,93 @@
-@extends('layouts.card')
+@extends('layouts.app')
 
-@section('judul', 'Ganti Password')
+@section('title')
+    Tambah User | PSL Track
+@endsection
 
 @section('content')
-    <h3 class="mb-2 fw-semibold">Ganti Password</h3>
-    <p class="text-muted font-size-16">
-        Untuk keamanan akun, silakan mengganti password default Anda.
-    </p>
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title fs-5 mb-0">Ubah Password</h3>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ route('profile.password.update') }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <div class="mb-3">
+                                        <label for="password_saat_ini" class="form-label">Password Saat Ini</label>
+                                        <div class="input-group auth-pass-inputgroup">
+                                            <input type="password" id="password_saat_ini" name="password_saat_ini"
+                                                class="form-control @error('password_saat_ini') is-invalid @enderror"
+                                                required>
+                                            <button class="btn btn-light shadow-none ms-0 tombol-tampilkan-password"
+                                                type="button" aria-label="Tampilkan atau sembunyikan password">
+                                                <i class="mdi mdi-eye-outline"></i>
+                                            </button>
+                                            @error('password_saat_ini')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
 
-    @if ($errors->any())
-        <div class="alert alert-danger text-start mt-4">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+                                    <div class="mb-3">
+                                        <label for="password_baru" class="form-label">Password Baru</label>
+                                        <div class="input-group auth-pass-inputgroup">
+                                            <input type="password" id="password_baru" name="password_baru"
+                                                class="form-control @error('password_baru') is-invalid @enderror" required>
+                                            <button class="btn btn-light shadow-none ms-0 tombol-tampilkan-password"
+                                                type="button" aria-label="Tampilkan atau sembunyikan password">
+                                                <i class="mdi mdi-eye-outline"></i>
+                                            </button>
+                                            @error('password_baru')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
 
-    <form action="{{ route('password.update') }}" method="POST" class="mt-4 text-start">
-        @csrf
+                                    <div class="mb-4">
+                                        <label for="konfirmasi_password_baru" class="form-label">Konfirmasi Password
+                                            Baru</label>
+                                        <div class="input-group auth-pass-inputgroup">
+                                            <input type="password" id="konfirmasi_password_baru"
+                                                name="konfirmasi_password_baru"
+                                                class="form-control @error('konfirmasi_password_baru') is-invalid @enderror"
+                                                required>
+                                            <button class="btn btn-light shadow-none ms-0 tombol-tampilkan-password"
+                                                type="button" aria-label="Tampilkan atau sembunyikan password">
+                                                <i class="mdi mdi-eye-outline"></i>
+                                            </button>
+                                            @error('konfirmasi_password_baru')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Password Saat Ini</label>
-            <div class="input-group auth-pass-inputgroup">
-                <input type="password" name="current_password" class="form-control"
-                    placeholder="Masukkan password saat ini" required>
-                <button class="btn btn-light shadow-none ms-0 tombol-tampilkan-password" type="button"
-                    aria-label="Tampilkan atau sembunyikan password">
-                    <i class="mdi mdi-eye-outline"></i>
-                </button>
+                                    <button type="submit" class="btn btn-primary">Simpan Password</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Password Baru</label>
-            <div class="input-group auth-pass-inputgroup">
-                <input type="password" name="password" class="form-control"
-                    placeholder="Masukkan password baru" required>
-                <button class="btn btn-light shadow-none ms-0 tombol-tampilkan-password" type="button"
-                    aria-label="Tampilkan atau sembunyikan password">
-                    <i class="mdi mdi-eye-outline"></i>
-                </button>
-            </div>
-            <small class="text-muted">Minimal 8 karakter.</small>
-        </div>
+    <script>
+        document.querySelectorAll('.tombol-tampilkan-password').forEach(function (tombolTampilkanPassword) {
+            tombolTampilkanPassword.addEventListener('click', function () {
+                const kolomPassword = tombolTampilkanPassword.closest('.input-group').querySelector('input');
+                const ikonMata = tombolTampilkanPassword.querySelector('i');
+                const sedangTersembunyi = kolomPassword.type === 'password';
 
-        <div class="mb-4">
-            <label class="form-label">Konfirmasi Password Baru</label>
-            <div class="input-group auth-pass-inputgroup">
-                <input type="password" name="password_confirmation" class="form-control"
-                    placeholder="Ulangi password baru" required>
-                <button class="btn btn-light shadow-none ms-0 tombol-tampilkan-password" type="button"
-                    aria-label="Tampilkan atau sembunyikan password">
-                    <i class="mdi mdi-eye-outline"></i>
-                </button>
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">
-            Simpan Password Baru
-        </button>
-    </form>
+                kolomPassword.type = sedangTersembunyi ? 'text' : 'password';
+                ikonMata.classList.toggle('mdi-eye-outline', !sedangTersembunyi);
+                ikonMata.classList.toggle('mdi-eye-off-outline', sedangTersembunyi);
+            });
+        });
+    </script>
 @endsection

@@ -80,9 +80,9 @@
                                 <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="#"><i
-                                        class="mdi mdi mdi-face-man font-size-16 align-middle me-1"></i>
-                                    Profil</a>
+                                <a class="dropdown-item" href="{{ route('profile.password.edit') }}">
+                                    <i class="bx bx-lock-alt font-size-16 align-middle me-1"></i> Ubah Password
+                                </a>
                                 <div class="dropdown-divider"></div>
                                 <form action="{{ route('logout') }}" method="POST" class="m-0"> @csrf
                                     <button type="submit" class="dropdown-item border-0">
@@ -145,9 +145,10 @@
                             </ul>
                         </li>
 
-                        <li><a href="{{ route('export-laporan.index') }}"><i class="bx bx-cloud-download
+                        <li><a href="{{ route('export-laporan.index') }}"><i
+                                    class="bx bx-cloud-download
                             "></i>
-                            <span>Export Data</span></a></li>
+                                <span>Export Data</span></a></li>
                         <li>
                             <a href="{{ route('task.index') }}">
                                 <i class="bx bx-task"></i>

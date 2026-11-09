@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\ProfilePasswordController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\TahunController;
@@ -82,6 +83,16 @@ Route::middleware('auth')->group(function () {
         PasswordController::class,
         'update'
     ])->name('password.update');
+
+    Route::get('/profil/ubah-password', [
+        ProfilePasswordController::class,
+        'showChangePasswordForm'
+    ])->name('profile.password.edit');
+
+    Route::put('/profil/ubah-password', [
+        ProfilePasswordController::class,
+        'updatePassword'
+    ])->name('profile.password.update');
 });
 
 
