@@ -78,9 +78,10 @@
     </div>
 
     <script>
-        document.querySelectorAll('.tombol-tampilkan-password').forEach(function (tombolTampilkanPassword) {
-            tombolTampilkanPassword.addEventListener('click', function () {
-                const kolomPassword = tombolTampilkanPassword.closest('.input-group').querySelector('input');
+        document.querySelectorAll('.tombol-tampilkan-password').forEach(function(tombolTampilkanPassword) {
+            tombolTampilkanPassword.addEventListener('click', function() {
+                const kolomPassword = tombolTampilkanPassword.closest('.input-group').querySelector(
+                'input');
                 const ikonMata = tombolTampilkanPassword.querySelector('i');
                 const sedangTersembunyi = kolomPassword.type === 'password';
 
