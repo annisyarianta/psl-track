@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\IndikatorKegiatan;
 use App\Models\Monitoring;
-use App\Models\PeriodeTw;
+use App\Models\Periode;
 use App\Models\Tahun;
 use App\Models\Task;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -20,10 +21,12 @@ class DashboardController extends Controller
     | NILAI YANG MUNGKIN PERLU DISESUAIKAN DENGAN DATABASE ANDA
     |--------------------------------------------------------------------------
     */
+    // Status monitoring di database: notstarted, onprogress, done (sebelumnya tertulis 'inprogress').
     private const MONITORING_STATUS_NOT_STARTED = 'notstarted';
-    private const MONITORING_STATUS_IN_PROGRESS = 'inprogress';
+    private const MONITORING_STATUS_IN_PROGRESS = 'onprogress';
     private const MONITORING_STATUS_DONE = 'done';
 
+    // Status task di database: todo, inprogress, done.
     private const TASK_STATUS_TODO = 'todo';
     private const TASK_STATUS_IN_PROGRESS = 'inprogress';
     private const TASK_STATUS_DONE = 'done';
@@ -36,13 +39,23 @@ class DashboardController extends Controller
     private const SCOPE_UNIT = 'unit';
     private const SCOPE_STAFF = 'staff';
 
+    private const PERIOD_TYPE_ORDER_SQL = "FIELD(jenis_periode, 'bulanan', 'triwulan', 'semester', 'tahunan')";
+
+    // Satuan yang dipakai pada judul grafik: "Status monitoring per bulan/triwulan/semester/tahun".
+    private const PERIOD_UNIT_LABELS = [
+        'bulanan' => 'bulan',
+        'triwulan' => 'triwulan',
+        'semester' => 'semester',
+        'tahunan' => 'tahun',
+    ];
+
     public function index(Request $request)
     {
         $loggedInUser = Auth::user();
 
         [$scopeType, $scopeId, $roleLabel, $scopeDescription] = $this->resolveAccessScope($loggedInUser);
 
-        /* ---------- Filter tahun dan triwulan ---------- */
+        /* ---------- Filter tahun dan periode ---------- */
         $availableYears = Tahun::where('tahun', '<=', now()->year)
             ->orderByDesc('tahun')
             ->get();
@@ -51,8 +64,13 @@ class DashboardController extends Controller
             ?? $availableYears->firstWhere('tahun', now()->year)
             ?? $availableYears->first();
 
+        // Urutan: bulanan, triwulan, semester, tahunan; di dalam jenis diurutkan menurut urutan_periode.
         $periodsOfSelectedYear = $selectedYear
-            ? PeriodeTw::where('id_tahun', $selectedYear->id_tahun)->orderBy('id_periode_tw')->get()->values()
+            ? Periode::where('id_tahun', $selectedYear->id_tahun)
+            ->orderByRaw(self::PERIOD_TYPE_ORDER_SQL)
+            ->orderBy('urutan_periode')
+            ->get()
+            ->values()
             : collect();
 
         if ($periodsOfSelectedYear->isEmpty()) {
@@ -66,47 +84,57 @@ class DashboardController extends Controller
                 'availableYears' => $availableYears,
                 'selectedYear' => $selectedYear,
                 'periodOptions' => collect(),
+                'periodOptionGroups' => collect(),
                 'selectedPeriod' => null,
             ]);
         }
 
-        $periodOptions = $periodsOfSelectedYear->map(fn($period, $index) => [
-            'id' => $period->id_periode_tw,
-            'label' => 'TW ' . ($index + 1),
+        $periodOptions = $periodsOfSelectedYear->map(fn($period) => [
+            'id' => $period->id_periode,
+            'label' => $period->nama_periode,
         ]);
 
-        $defaultPeriodIndex = ($selectedYear->tahun == now()->year)
-            ? min(now()->quarter - 1, $periodsOfSelectedYear->count() - 1)
-            : $periodsOfSelectedYear->count() - 1;
+        // Dipakai untuk dropdown berkelompok (optgroup): ['bulanan' => [...], 'triwulan' => [...], ...]
+        $periodOptionGroups = $periodsOfSelectedYear
+            ->groupBy('jenis_periode')
+            ->map(fn($periodsOfType) => $periodsOfType->map(fn($period) => [
+                'id' => $period->id_periode,
+                'label' => $period->nama_periode,
+            ])->values());
 
-        $selectedPeriod = $periodsOfSelectedYear->firstWhere('id_periode_tw', (int) $request->query('triwulan'))
-            ?? $periodsOfSelectedYear->get($defaultPeriodIndex);
+        $selectedPeriod = $this->resolveSelectedPeriod($request, $selectedYear, $periodsOfSelectedYear);
+        $selectedPeriodLabel = $selectedPeriod->nama_periode;
+        $allPeriodIdsOfYear = $periodsOfSelectedYear->pluck('id_periode')->all();
 
-        $selectedPeriodLabel = $periodOptions->firstWhere('id', $selectedPeriod->id_periode_tw)['label'];
-        $allPeriodIdsOfYear = $periodsOfSelectedYear->pluck('id_periode_tw')->all();
+        // Grafik menampilkan semua periode dengan jenis yang sama seperti periode terpilih
+        // (periode Maret -> 12 bulan, Triwulan 2 -> 4 triwulan, Semester 1 -> 2 semester, Tahunan -> 1).
+        $chartPeriods = $periodsOfSelectedYear
+            ->where('jenis_periode', $selectedPeriod->jenis_periode)
+            ->values();
+        $monitoringChartTitle = 'Status monitoring per ' . self::PERIOD_UNIT_LABELS[$selectedPeriod->jenis_periode];
 
-        /* ---------- Grafik status monitoring per triwulan ---------- */
-        $monitoringStatusRows = $this->buildMonitoringQuery($allPeriodIdsOfYear, $scopeType, $scopeId)
-            ->selectRaw('id_periode_tw, COALESCE(status, ?) as status_monitoring, COUNT(*) as total', [self::MONITORING_STATUS_NOT_STARTED])
-            ->groupBy('id_periode_tw', 'status_monitoring')
+        /* ---------- Grafik status monitoring per periode ---------- */
+        $monitoringStatusRows = $this->buildMonitoringQuery($chartPeriods->pluck('id_periode')->all(), $scopeType, $scopeId)
+            ->selectRaw('id_periode, COALESCE(status, ?) as status_monitoring, COUNT(*) as total', [self::MONITORING_STATUS_NOT_STARTED])
+            ->groupBy('id_periode', 'status_monitoring')
             ->get();
 
         $monitoringChartData = ['labels' => [], 'done' => [], 'inProgress' => [], 'notStarted' => []];
 
-        foreach ($periodsOfSelectedYear as $index => $period) {
+        foreach ($chartPeriods as $period) {
             $countByStatus = $monitoringStatusRows
-                ->where('id_periode_tw', $period->id_periode_tw)
+                ->where('id_periode', $period->id_periode)
                 ->pluck('total', 'status_monitoring');
 
-            $monitoringChartData['labels'][] = 'TW ' . ($index + 1);
+            $monitoringChartData['labels'][] = $this->buildChartLabel($period);
             $monitoringChartData['done'][] = (int) ($countByStatus[self::MONITORING_STATUS_DONE] ?? 0);
             $monitoringChartData['inProgress'][] = (int) ($countByStatus[self::MONITORING_STATUS_IN_PROGRESS] ?? 0);
             $monitoringChartData['notStarted'][] = (int) ($countByStatus[self::MONITORING_STATUS_NOT_STARTED] ?? 0);
         }
 
-        /* ---------- Angka triwulan terpilih ---------- */
-        $selectedPeriodIndex = $periodsOfSelectedYear->search(
-            fn($period) => $period->id_periode_tw === $selectedPeriod->id_periode_tw
+        /* ---------- Angka periode terpilih ---------- */
+        $selectedPeriodIndex = $chartPeriods->search(
+            fn($period) => (int) $period->id_periode === (int) $selectedPeriod->id_periode
         );
         $totalMonitoringInSelectedPeriod = $monitoringChartData['done'][$selectedPeriodIndex]
             + $monitoringChartData['inProgress'][$selectedPeriodIndex]
@@ -116,6 +144,7 @@ class DashboardController extends Controller
         $notStartedMonitoringInSelectedPeriod = $monitoringChartData['notStarted'][$selectedPeriodIndex];
         $fillingPercentage = $this->calculatePercentage($filledMonitoringInSelectedPeriod, $totalMonitoringInSelectedPeriod);
 
+        // Indikator aktif dihitung dari semua periode pada tahun terpilih (semua jenis periode).
         $activeIndicatorCount = $this->buildMonitoringQuery($allPeriodIdsOfYear, $scopeType, $scopeId)
             ->distinct()
             ->count('id_indikator_sub_kegiatan');
@@ -181,7 +210,7 @@ class DashboardController extends Controller
             $loggedInUser,
             $scopeType,
             $scopeId,
-            $selectedPeriod->id_periode_tw
+            $selectedPeriod->id_periode
         );
 
         /* ---------- Perlu perhatian ---------- */
@@ -194,7 +223,7 @@ class DashboardController extends Controller
                 'title' => $notStartedMonitoringInSelectedPeriod . ' indikator belum diisi pada ' . $selectedPeriodLabel,
                 'description' => $lowestRankingItem && $scopeType !== self::SCOPE_STAFF
                     ? 'Paling tertinggal: ' . $lowestRankingItem['label']
-                    : 'Segera lengkapi sebelum triwulan berakhir',
+                    : 'Segera lengkapi sebelum periode berakhir',
             ];
         }
 
@@ -216,7 +245,7 @@ class DashboardController extends Controller
             ];
         }
 
-        $monitoringWithoutReportFileCount = $this->buildMonitoringQuery([$selectedPeriod->id_periode_tw], $scopeType, $scopeId)
+        $monitoringWithoutReportFileCount = $this->buildMonitoringQuery([$selectedPeriod->id_periode], $scopeType, $scopeId)
             ->whereNotNull('status')
             ->where('status', '!=', self::MONITORING_STATUS_NOT_STARTED)
             ->doesntHave('files')
@@ -257,9 +286,11 @@ class DashboardController extends Controller
             'availableYears' => $availableYears,
             'selectedYear' => $selectedYear,
             'periodOptions' => $periodOptions,
+            'periodOptionGroups' => $periodOptionGroups,
             'selectedPeriod' => $selectedPeriod,
             'selectedPeriodLabel' => $selectedPeriodLabel,
             'summaryCards' => $summaryCards,
+            'monitoringChartTitle' => $monitoringChartTitle,
             'monitoringChartData' => $monitoringChartData,
             'taskChartData' => $taskChartData,
             'totalTaskCount' => $totalTaskCount,
@@ -267,6 +298,50 @@ class DashboardController extends Controller
             'rankingItems' => $rankingItems,
             'attentionItems' => $attentionItems,
         ]);
+    }
+
+    /**
+     * Menentukan periode yang terpilih.
+     *
+     * 1. Jika ada parameter periode di URL, pakai periode dengan jenis dan urutan yang sama pada tahun terpilih
+     *    (saat tahun diganti, periode yang sama ikut terpilih, misalnya Triwulan 2 tetap Triwulan 2).
+     *    Parameter lama "triwulan" tetap dibaca agar view lama masih berfungsi sampai diperbarui.
+     * 2. Jika tidak ada: tahun berjalan memakai triwulan saat ini, tahun lain memakai triwulan terakhir.
+     */
+    private function resolveSelectedPeriod(Request $request, Tahun $selectedYear, Collection $periodsOfSelectedYear): Periode
+    {
+        $requestedPeriodId = (int) ($request->query('periode') ?? $request->query('triwulan'));
+        $requestedPeriod = $requestedPeriodId > 0 ? Periode::find($requestedPeriodId) : null;
+
+        if ($requestedPeriod) {
+            $equivalentPeriod = $periodsOfSelectedYear->first(
+                fn($period) => $period->jenis_periode === $requestedPeriod->jenis_periode
+                    && (int) $period->urutan_periode === (int) $requestedPeriod->urutan_periode
+            );
+
+            if ($equivalentPeriod) {
+                return $equivalentPeriod;
+            }
+        }
+
+        $quarterPeriods = $periodsOfSelectedYear->where('jenis_periode', 'triwulan');
+
+        return ($selectedYear->tahun == now()->year
+            ? $quarterPeriods->firstWhere('urutan_periode', now()->quarter)
+            : $quarterPeriods->last())
+            ?? $periodsOfSelectedYear->first();
+    }
+
+    /**
+     * Label singkat untuk sumbu grafik: Jan, Feb, ... / TW 1 / Semester 1 / Tahunan.
+     */
+    private function buildChartLabel(Periode $period): string
+    {
+        return match ($period->jenis_periode) {
+            'bulanan' => mb_substr($period->nama_periode, 0, 3),
+            'triwulan' => 'TW ' . $period->urutan_periode,
+            default => $period->nama_periode,
+        };
     }
 
     /**
@@ -305,7 +380,7 @@ class DashboardController extends Controller
      */
     private function buildMonitoringQuery(array $periodIds, string $scopeType, $scopeId): Builder
     {
-        $monitoringQuery = Monitoring::query()->whereIn('id_periode_tw', $periodIds);
+        $monitoringQuery = Monitoring::query()->whereIn('id_periode', $periodIds);
 
         if ($scopeType === self::SCOPE_UNIT) {
             $monitoringQuery->whereHas(

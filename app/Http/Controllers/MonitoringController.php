@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\FilePelaporan;
 use App\Models\IndikatorSubKegiatan;
 use App\Models\Monitoring;
-use App\Models\PeriodeTw;
+use App\Models\Periode;
 use App\Models\Tahun;
 use App\Models\User;
 use App\Models\Unit;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -40,23 +41,24 @@ class MonitoringController extends Controller
 
         abort_if(! $tahunDipilih, 404, 'Data tahun belum tersedia.');
 
-        $daftarPeriodeTriwulan = PeriodeTw::where('id_tahun', $tahunDipilih->id_tahun)
-            ->orderBy('triwulan')
+        // Urutan: bulanan, triwulan, semester, tahunan; di dalam jenis diurutkan menurut urutan_periode.
+        $daftarPeriode = Periode::where('id_tahun', $tahunDipilih->id_tahun)
+            ->orderByRaw("FIELD(jenis_periode, 'bulanan', 'triwulan', 'semester', 'tahunan')")
+            ->orderBy('urutan_periode')
             ->get();
 
-        $periodeDipilih = $daftarPeriodeTriwulan->firstWhere('id_periode_tw', $request->input('id_periode_tw'))
-            ?? ($tahunDipilih->tahun == now()->year
-                ? $daftarPeriodeTriwulan->firstWhere('triwulan', now()->quarter)
-                : $daftarPeriodeTriwulan->last())
-            ?? $daftarPeriodeTriwulan->first();
+        // Dipakai untuk dropdown berkelompok (optgroup) di view.
+        $daftarPeriodePerJenis = $daftarPeriode->groupBy('jenis_periode');
 
-        abort_if(! $periodeDipilih, 404, 'Periode triwulan belum tersedia untuk tahun ini.');
+        $periodeDipilih = $this->tentukanPeriodeDipilih($request, $tahunDipilih, $daftarPeriode);
+
+        abort_if(! $periodeDipilih, 404, 'Periode belum tersedia untuk tahun ini.');
 
         $statusDipilih = in_array($request->input('status'), self::DAFTAR_STATUS, true)
             ? $request->input('status')
             : null;
 
-        $queryMonitoring = Monitoring::where('id_periode_tw', $periodeDipilih->id_periode_tw)
+        $queryMonitoring = Monitoring::where('id_periode', $periodeDipilih->id_periode)
             ->whereHas('indikatorSubKegiatan', function (Builder $queryIndikator) use ($pengguna) {
                 $this->batasiSesuaiPeran($queryIndikator, $pengguna);
             });
@@ -90,7 +92,7 @@ class MonitoringController extends Controller
         return view('monitoring.index', compact(
             'daftarTahun',
             'tahunDipilih',
-            'daftarPeriodeTriwulan',
+            'daftarPeriodePerJenis',
             'periodeDipilih',
             'statusDipilih',
             'ringkasanStatus',
@@ -98,7 +100,7 @@ class MonitoringController extends Controller
             'dapatMengisi',
         ));
     }
-    
+
     public function show(Request $request, Monitoring $monitoring)
     {
         $this->pastikanDapatMengakses($request->user(), $monitoring);
@@ -180,14 +182,46 @@ class MonitoringController extends Controller
             }
         });
 
-        $periodeTriwulan = $monitoring->periodeTw;
+        $periode = $monitoring->periode;
 
         return redirect()
             ->route('monitoring.index', [
-                'id_tahun' => $periodeTriwulan->id_tahun,
-                'id_periode_tw' => $periodeTriwulan->id_periode_tw,
+                'id_tahun' => $periode->id_tahun,
+                'id_periode' => $periode->id_periode,
             ])
             ->with('success', 'Monitoring berhasil disimpan.');
+    }
+
+    /**
+     * Menentukan periode yang tampil di halaman monitoring.
+     *
+     * 1. Jika ada id_periode di URL, pakai periode dengan jenis dan urutan yang sama pada tahun yang dipilih
+     *    (agar saat tahun diganti, periode yang sama ikut terpilih, misalnya Triwulan 2 tetap Triwulan 2).
+     * 2. Jika tidak ada: tahun berjalan memakai triwulan saat ini, tahun lain memakai triwulan terakhir.
+     */
+    private function tentukanPeriodeDipilih(Request $request, Tahun $tahunDipilih, Collection $daftarPeriode): ?Periode
+    {
+        $periodeDariRequest = $request->filled('id_periode')
+            ? Periode::find($request->input('id_periode'))
+            : null;
+
+        if ($periodeDariRequest) {
+            $periodeSetara = $daftarPeriode->first(
+                fn(Periode $periode) => $periode->jenis_periode === $periodeDariRequest->jenis_periode
+                    && $periode->urutan_periode === $periodeDariRequest->urutan_periode
+            );
+
+            if ($periodeSetara) {
+                return $periodeSetara;
+            }
+        }
+
+        $daftarPeriodeTriwulan = $daftarPeriode->where('jenis_periode', 'triwulan');
+
+        return ($tahunDipilih->tahun == now()->year
+            ? $daftarPeriodeTriwulan->firstWhere('urutan_periode', now()->quarter)
+            : $daftarPeriodeTriwulan->last())
+            ?? $daftarPeriode->first();
     }
 
     /**
@@ -229,12 +263,13 @@ class MonitoringController extends Controller
         $monitoring->load([
             'files',
             'lastUpdatedBy',
+            'periode',
             'indikatorSubKegiatan.subKegiatan.indikatorKegiatan.kegiatan',
             'indikatorSubKegiatan.subKegiatan.indikatorKegiatan.picStaff',
             'indikatorSubKegiatan.subKegiatan.indikatorKegiatan.kegiatan.indikatorProgram.picUnit',
         ]);
 
-        $periodeTriwulan = $monitoring->periodeTw;
+        $periode = $monitoring->periode;
 
         $indikatorKegiatan = $monitoring->indikatorSubKegiatan->subKegiatan->indikatorKegiatan;
         $indikatorProgram = $indikatorKegiatan->kegiatan->indikatorProgram;
@@ -248,8 +283,8 @@ class MonitoringController extends Controller
         return [
             'monitoring' => $monitoring,
             'indikatorSubKegiatan' => $monitoring->indikatorSubKegiatan,
-            'periodeTriwulan' => $periodeTriwulan,
-            'tahunPeriode' => Tahun::findOrFail($periodeTriwulan->id_tahun),
+            'periode' => $periode,
+            'tahunPeriode' => Tahun::findOrFail($periode->id_tahun),
             'daftarNamaPicStaff' => $daftarNamaPicStaff,
             'daftarNamaPicUnit' => $daftarNamaPicUnit,
         ];

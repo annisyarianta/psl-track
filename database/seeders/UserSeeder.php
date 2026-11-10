@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
         User::create([
             'nama' => 'Dilla Anggraeni, S.T., M.T.',
             'nopeg' => '995',
-            'email' => 'dilla.anggraeni@gmail.com',
+            'email' => 'dilla.anggraeni@psl.com',
             'password' => Hash::make('12345678'),
             'role' => 'manager',
             'id_unit' => null,

@@ -23,7 +23,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                            <h3 class="mb-sm-0">Monitoring Triwulan</h3>
+                            <h3 class="mb-sm-0">Monitoring KPI – {{ $periodeDipilih->nama_periode }}</h3>
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
                                     <li class="breadcrumb-item">KPI Tracker</li>
@@ -50,14 +50,17 @@
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="filterTriwulan" class="form-label">Triwulan</label>
-                                    <select id="filterTriwulan" name="id_periode_tw" class="form-select"
-                                        onchange="this.form.submit()">
-                                        @foreach ($daftarPeriodeTriwulan as $periodeTriwulan)
-                                            <option value="{{ $periodeTriwulan->id_periode_tw }}"
-                                                @selected($periodeTriwulan->id_periode_tw == $periodeDipilih->id_periode_tw)>
-                                                Triwulan {{ $periodeTriwulan->triwulan }}
-                                            </option>
+                                    <label for="id_periode" class="form-label">Periode</label>
+                                    <select name="id_periode" id="id_periode" class="form-select">
+                                        @foreach ($daftarPeriodePerJenis as $jenisPeriode => $daftarPeriode)
+                                            <optgroup label="{{ ucfirst($jenisPeriode) }}">
+                                                @foreach ($daftarPeriode as $periode)
+                                                    <option value="{{ $periode->id_periode }}"
+                                                        @selected($periode->id_periode === $periodeDipilih->id_periode)>
+                                                        {{ $periode->nama_periode }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
                                         @endforeach
                                     </select>
                                 </div>

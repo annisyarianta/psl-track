@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('monitoring', function (Blueprint $table) {
             $table->id('id_monitoring');
 
-            $table->unsignedBigInteger('id_periode_tw');
+            $table->unsignedBigInteger('id_periode');
             $table->unsignedBigInteger('id_indikator_sub_kegiatan');
 
             $table->string('upaya', 255)->nullable();
@@ -29,9 +29,9 @@ return new class extends Migration
                 'done',
             ])->nullable();
 
-            $table->foreign('id_periode_tw')
-                ->references('id_periode_tw')
-                ->on('periode_tw');
+            $table->foreign('id_periode')
+                ->references('id_periode')
+                ->on('periode');
 
             $table->foreign('id_indikator_sub_kegiatan')
                 ->references('id_indikator_sub_kegiatan')
@@ -42,9 +42,11 @@ return new class extends Migration
                 ->on('users');
 
             $table->unique([
-                'id_periode_tw',
+                'id_periode',
                 'id_indikator_sub_kegiatan'
             ]);
+
+            $table->unique(['id_periode', 'id_indikator_sub_kegiatan'], 'monitoring_periode_indikator_unique');
         });
     }
 

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\IndikatorSubKegiatan;
 use App\Models\SubKegiatan;
 use App\Models\Monitoring;
-use App\Models\PeriodeTw;
+use App\Services\PenyelarasMonitoring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -39,7 +39,7 @@ class IndikatorSubKegiatanController extends Controller
         );
     }
 
-    public function store(Request $request)
+    public function store(Request $request, PenyelarasMonitoring $penyelarasMonitoring)
     {
         $validated = $request->validate([
             'id_sub_kegiatan' => [
@@ -60,35 +60,16 @@ class IndikatorSubKegiatanController extends Controller
             ],
         ]);
 
-        $indikatorSubKegiatan = IndikatorSubKegiatan::create($validated);
+        DB::transaction(function () use ($validated, $penyelarasMonitoring) {
+            $indikatorSubKegiatan = IndikatorSubKegiatan::create($validated);
 
-        $indikatorSubKegiatan->load(
-            'subKegiatan.indikatorKegiatan.kegiatan.indikatorProgram.program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
-        );
-
-        $tahun = $indikatorSubKegiatan
-            ->subKegiatan
-            ->indikatorKegiatan
-            ->kegiatan
-            ->indikatorProgram
-            ->program
-            ->indikatorInisiatif
-            ->sasaranInisiatif
-            ->indikatorKpi
-            ->sasaranStrategis
-            ->tahun;
-
-        $periodeTws = PeriodeTw::where('id_tahun', $tahun->id_tahun)->get();
-
-        foreach ($periodeTws as $periodeTw) {
-            Monitoring::create([
-                'id_periode_tw' => $periodeTw->id_periode_tw,
-                'id_indikator_sub_kegiatan' => $indikatorSubKegiatan->id_indikator_sub_kegiatan,
-                'status' => 'notstarted',
-                'last_updated_by' => auth()->id(),
-                'last_updated_at' => now(),
-            ]);
-        }
+            // Membuat baris monitoring sesuai periode_pengukuran indikator program
+            // (bulanan = 12 baris, triwulan = 4, semester = 2, tahunan = 1).
+            $penyelarasMonitoring->selaraskan(
+                $indikatorSubKegiatan,
+                auth()->user()->id_user
+            );
+        });
 
         return redirect()
             ->route('sub-kegiatan.index')
@@ -148,6 +129,7 @@ class IndikatorSubKegiatanController extends Controller
             ],
         ]);
 
+        // Sub kegiatan tidak bisa dipindah lewat form ini, jadi baris monitoring tidak perlu diselaraskan ulang.
         $indikatorSubKegiatan->update($validated);
 
         return redirect()
@@ -160,10 +142,13 @@ class IndikatorSubKegiatanController extends Controller
 
     public function destroy(IndikatorSubKegiatan $indikatorSubKegiatan)
     {
+        // Memakai sudahTerisi() agar isian dan file pelaporan ikut terhitung, bukan hanya status.
         $sudahDiisi = Monitoring::where(
             'id_indikator_sub_kegiatan',
             $indikatorSubKegiatan->id_indikator_sub_kegiatan
-        )->where('status', '!=', 'notstarted')->exists();
+        )
+            ->get()
+            ->contains(fn(Monitoring $barisMonitoring) => $barisMonitoring->sudahTerisi());
 
         if ($sudahDiisi) {
             return redirect()

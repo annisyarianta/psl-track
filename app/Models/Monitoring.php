@@ -13,7 +13,7 @@ class Monitoring extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'id_periode_tw',
+        'id_periode',
         'id_indikator_sub_kegiatan',
         'upaya',
         'capaian',
@@ -28,13 +28,23 @@ class Monitoring extends Model
         'last_updated_at' => 'datetime',
     ];
 
-    public function periodeTw()
+    public function periode()
     {
         return $this->belongsTo(
-            PeriodeTw::class,
-            'id_periode_tw',
-            'id_periode_tw'
+            Periode::class,
+            'id_periode',
+            'id_periode'
         );
+    }
+
+    public function sudahTerisi(): bool
+    {
+        return ! in_array($this->status, [null, 'notstarted'], true)
+            || filled($this->upaya)
+            || filled($this->capaian)
+            || filled($this->keterangan)
+            || filled($this->identifikasi)
+            || $this->files()->exists();
     }
 
     public function indikatorSubKegiatan()

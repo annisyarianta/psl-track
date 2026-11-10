@@ -35,4 +35,16 @@ class IndikatorSubKegiatan extends Model
             'id_indikator_sub_kegiatan'
         );
     }
+
+    public function ambilIndikatorProgram(): IndikatorProgram
+    {
+        return $this->subKegiatan->indikatorKegiatan->kegiatan->indikatorProgram;
+    }
+
+    public function ambilIdTahun(): int
+    {
+        return $this->ambilIndikatorProgram()
+            ->program->indikatorInisiatif->sasaranInisiatif
+            ->indikatorKpi->sasaranStrategis->id_tahun;
+    }
 }

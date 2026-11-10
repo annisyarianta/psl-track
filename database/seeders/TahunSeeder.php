@@ -2,28 +2,21 @@
 
 namespace Database\Seeders;
 
+use App\Models\Periode;
 use App\Models\Tahun;
-use App\Models\PeriodeTw;
 use Illuminate\Database\Seeder;
 
 class TahunSeeder extends Seeder
 {
     public function run(): void
     {
-        // Generate tahun 2025 - 2032
-        for ($tahun = 2025; $tahun <= 2032; $tahun++) {
+        for ($nilaiTahun = 2025; $nilaiTahun <= 2030; $nilaiTahun++) {
 
-            $dataTahun = Tahun::create([
-                'tahun' => $tahun,
+            $dataTahun = Tahun::firstOrCreate([
+                'tahun' => $nilaiTahun,
             ]);
 
-            // Generate Triwulan I - IV
-            for ($i = 1; $i <= 4; $i++) {
-                PeriodeTw::create([
-                    'id_tahun' => $dataTahun->id_tahun,
-                    'triwulan' => $i,
-                ]);
-            }
+            Periode::buatUntukTahun($dataTahun->id_tahun);
         }
     }
 }

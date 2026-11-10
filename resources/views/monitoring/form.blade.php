@@ -38,7 +38,7 @@
                             </div>
                             <div class="col-md-2">
                                 <p class="text-muted mb-1">Periode</p>
-                                <h6>TW {{ $periodeTriwulan->triwulan }} &middot; {{ $tahunPeriode->tahun }}</h6>
+                                <h6>{{ $periode->nama_periode }} &middot; {{ $tahunPeriode->tahun }}</h6>
                             </div>
                             <div class="col-md-2">
                                 <p class="text-muted mb-1">Target</p>
@@ -132,12 +132,13 @@
                         <div class="card-footer d-flex justify-content-between align-items-center">
                             <small class="text-muted">
                                 @if (filled($monitoring->capaian))
-                                    Terakhir diubah {{ $monitoring->last_updated_at->locale('id')->translatedFormat('d M Y') }} oleh
+                                    Terakhir diubah
+                                    {{ $monitoring->last_updated_at->locale('id')->translatedFormat('d M Y') }} oleh
                                     {{ $monitoring->lastUpdatedBy->nama }}
                                 @endif
                             </small>
                             <div>
-                                <a href="{{ route('monitoring.index', ['id_tahun' => $periodeTriwulan->id_tahun, 'id_periode_tw' => $periodeTriwulan->id_periode_tw]) }}"
+                                <a href="{{ route('monitoring.index', ['id_tahun' => $periode->id_tahun, 'id_periode' => $periode->id_periode]) }}"
                                     class="btn btn-light">Batal</a>
                                 <button type="submit" class="btn btn-primary ms-2">Simpan</button>
                             </div>
@@ -149,7 +150,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const inputFilePelaporan = document.getElementById('filePelaporan');
             const daftarFileBaru = document.getElementById('daftarFileBaru');
             const penampungFileTerpilih = new DataTransfer();
@@ -157,9 +158,10 @@
             function tampilkanDaftarFileBaru() {
                 daftarFileBaru.innerHTML = '';
 
-                Array.from(penampungFileTerpilih.files).forEach(function (file, urutanFile) {
+                Array.from(penampungFileTerpilih.files).forEach(function(file, urutanFile) {
                     const itemFile = document.createElement('li');
-                    itemFile.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    itemFile.className =
+                    'list-group-item d-flex justify-content-between align-items-center';
 
                     const namaFile = document.createElement('span');
                     namaFile.textContent = file.name;
@@ -168,7 +170,7 @@
                     tombolBatalkanFile.type = 'button';
                     tombolBatalkanFile.className = 'btn btn-sm btn-outline-danger';
                     tombolBatalkanFile.textContent = 'Batalkan';
-                    tombolBatalkanFile.addEventListener('click', function () {
+                    tombolBatalkanFile.addEventListener('click', function() {
                         penampungFileTerpilih.items.remove(urutanFile);
                         inputFilePelaporan.files = penampungFileTerpilih.files;
                         tampilkanDaftarFileBaru();
@@ -180,12 +182,13 @@
                 });
             }
 
-            inputFilePelaporan.addEventListener('change', function () {
-                Array.from(inputFilePelaporan.files).forEach(function (file) {
-                    const sudahDipilih = Array.from(penampungFileTerpilih.files).some(function (fileTerpilih) {
-                        return fileTerpilih.name === file.name
-                            && fileTerpilih.size === file.size
-                            && fileTerpilih.lastModified === file.lastModified;
+            inputFilePelaporan.addEventListener('change', function() {
+                Array.from(inputFilePelaporan.files).forEach(function(file) {
+                    const sudahDipilih = Array.from(penampungFileTerpilih.files).some(function(
+                        fileTerpilih) {
+                        return fileTerpilih.name === file.name &&
+                            fileTerpilih.size === file.size &&
+                            fileTerpilih.lastModified === file.lastModified;
                     });
 
                     if (!sudahDipilih) {

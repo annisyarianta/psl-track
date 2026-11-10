@@ -5,6 +5,13 @@
 @endsection
 
 @section('content')
+    @php
+        $selectedPeriodWithYear = $hasData
+            ? ($selectedPeriod->jenis_periode === 'tahunan'
+                ? 'periode tahunan ' . $selectedYear->tahun
+                : $selectedPeriodLabel . ' tahun ' . $selectedYear->tahun)
+            : null;
+    @endphp
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -118,7 +125,8 @@
             background-color: rgba(255, 255, 255, 0.14);
         }
 
-        .psl-dash-filter-field select option {
+        .psl-dash-filter-field select option,
+        .psl-dash-filter-field select optgroup {
             color: #1f2937;
         }
 
@@ -489,11 +497,10 @@
                             <h1 class="psl-dash-hero-title">{{ $greeting }}, {{ $greetingName }}!</h1>
                             <p class="psl-dash-hero-subtitle">
                                 @if ($hasData)
-                                    Berikut ringkasan capaian KPI {{ $scopeDescription }} untuk {{ $selectedPeriodLabel }}
-                                    tahun
-                                    {{ $selectedYear->tahun }}.
+                                    Berikut ringkasan capaian KPI {{ $scopeDescription }} untuk
+                                    {{ $selectedPeriodWithYear }}.
                                 @else
-                                    Data KPI {{ $scopeDescription }} akan tampil di sini setelah periode triwulan tersedia.
+                                    Data KPI {{ $scopeDescription }} akan tampil di sini setelah periode tersedia.
                                 @endif
                             </p>
                         </div>
@@ -513,12 +520,17 @@
                                 </label>
                                 @if ($hasData)
                                     <label class="psl-dash-filter-field">
-                                        Triwulan
-                                        <select name="triwulan" class="form-select">
-                                            @foreach ($periodOptions as $periodOption)
-                                                <option value="{{ $periodOption['id'] }}" @selected($periodOption['id'] === $selectedPeriod->id_periode_tw)>
-                                                    {{ $periodOption['label'] }}
-                                                </option>
+                                        Periode
+                                        <select name="periode" class="form-select">
+                                            @foreach ($periodOptionGroups as $periodType => $periodOptionsOfType)
+                                                <optgroup label="{{ ucfirst($periodType) }}">
+                                                    @foreach ($periodOptionsOfType as $periodOption)
+                                                        <option value="{{ $periodOption['id'] }}"
+                                                            @selected($periodOption['id'] === $selectedPeriod->id_periode)>
+                                                            {{ $periodOption['label'] }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
                                             @endforeach
                                         </select>
                                     </label>
@@ -549,7 +561,7 @@
                         <section class="psl-dash-chart-grid">
                             <div class="card psl-dash-card">
                                 <div class="psl-dash-card-body">
-                                    <h2 class="psl-dash-card-title">Status monitoring per triwulan</h2>
+                                    <h2 class="psl-dash-card-title">{{ $monitoringChartTitle }}</h2>
                                     <p class="psl-dash-card-caption">Jumlah monitoring indikator pada tahun
                                         {{ $selectedYear->tahun }}.
                                     </p>
@@ -561,7 +573,7 @@
                                     </div>
                                     <div class="psl-dash-chart-box">
                                         <canvas id="monitoringStatusChartCanvas" role="img"
-                                            aria-label="Diagram batang status monitoring per triwulan"></canvas>
+                                            aria-label="Diagram batang {{ mb_strtolower($monitoringChartTitle) }}"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -601,8 +613,7 @@
                             <div class="card psl-dash-card">
                                 <div class="psl-dash-card-body">
                                     <h2 class="psl-dash-card-title">{{ $rankingTitle }}</h2>
-                                    <p class="psl-dash-card-caption">Kondisi {{ $selectedPeriodLabel }} tahun
-                                        {{ $selectedYear->tahun }}.</p>
+                                    <p class="psl-dash-card-caption">Kondisi {{ $selectedPeriodWithYear }}.</p>
 
                                     @forelse ($rankingItems as $rankingItem)
                                         @php
@@ -666,8 +677,8 @@
                         <div class="card psl-dash-card">
                             <div class="psl-dash-empty psl-dash-empty-muted">
                                 <i class="mdi mdi-calendar-blank-outline"></i>
-                                <strong>Periode triwulan belum tersedia</strong>
-                                <span>Tambahkan tahun dan periode triwulan terlebih dahulu.</span>
+                                <strong>Periode belum tersedia</strong>
+                                <span>Tambahkan tahun terlebih dahulu. Periode dibuat otomatis bersama tahun.</span>
                             </div>
                         </div>
                     @endif
@@ -711,21 +722,24 @@
                                 data: monitoringChartData.done,
                                 backgroundColor: '#10b981',
                                 borderRadius: 8,
-                                borderSkipped: false
+                                borderSkipped: false,
+                                maxBarThickness: 72
                             },
                             {
                                 label: 'Berjalan',
                                 data: monitoringChartData.inProgress,
                                 backgroundColor: '#f59e0b',
                                 borderRadius: 8,
-                                borderSkipped: false
+                                borderSkipped: false,
+                                maxBarThickness: 72
                             },
                             {
                                 label: 'Belum mulai',
                                 data: monitoringChartData.notStarted,
                                 backgroundColor: '#cbd5e1',
                                 borderRadius: 8,
-                                borderSkipped: false
+                                borderSkipped: false,
+                                maxBarThickness: 72
                             }
                         ]
                     },

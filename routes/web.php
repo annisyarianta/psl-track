@@ -19,7 +19,6 @@ use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\IndikatorKegiatanController;
 use App\Http\Controllers\SubKegiatanController;
 use App\Http\Controllers\IndikatorSubKegiatanController;
-use App\Http\Controllers\PeriodeTwController;
 use App\Http\Controllers\PicUnitController;
 use App\Http\Controllers\PicStaffController;
 use App\Http\Controllers\MonitoringController;
@@ -198,7 +197,6 @@ Route::middleware([
         Route::resource('unit', UnitController::class);
         Route::resource('users', UserController::class);
     });
-    Route::resource('periode-tw', PeriodeTwController::class);
     Route::resource('monitoring', MonitoringController::class)
         ->only([
             'index',

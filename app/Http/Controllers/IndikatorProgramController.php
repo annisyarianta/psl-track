@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\IndikatorProgram;
+use App\Models\IndikatorSubKegiatan;
+use App\Models\Monitoring;
 use App\Models\Program;
+use App\Services\PenyelarasMonitoring;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -115,7 +119,8 @@ class IndikatorProgramController extends Controller
 
     public function update(
         Request $request,
-        IndikatorProgram $indikatorProgram
+        IndikatorProgram $indikatorProgram,
+        PenyelarasMonitoring $penyelarasMonitoring
     ) {
         $dataTervalidasi  = $request->validate([
             'nama_indikator_program' => [
@@ -148,9 +153,29 @@ class IndikatorProgramController extends Controller
             'id_unit.*' => ['exists:unit,id_unit'],
         ]);
 
-        DB::transaction(function () use ($indikatorProgram, $dataTervalidasi) {
+        $periodePengukuranBerubah = $indikatorProgram->periode_pengukuran !== $dataTervalidasi['periode_pengukuran'];
+
+        // Periode pengukuran hanya boleh diubah jika belum ada monitoring yang terisi,
+        // karena baris monitoring dibuat per periode (bulanan/triwulan/semester/tahunan).
+        if ($periodePengukuranBerubah) {
+            $jumlahMonitoringTerisi = $this->hitungMonitoringTerisi($indikatorProgram);
+
+            if ($jumlahMonitoringTerisi > 0) {
+                return back()
+                    ->withErrors([
+                        'periode_pengukuran' => "Periode pengukuran tidak dapat diubah karena sudah ada {$jumlahMonitoringTerisi} data monitoring yang terisi.",
+                    ])
+                    ->withInput();
+            }
+        }
+
+        DB::transaction(function () use ($indikatorProgram, $dataTervalidasi, $periodePengukuranBerubah, $penyelarasMonitoring) {
             $indikatorProgram->update(Arr::except($dataTervalidasi, 'id_unit'));
             $this->sinkronkanPicUnit($indikatorProgram, $dataTervalidasi['id_unit'] ?? []);
+
+            if ($periodePengukuranBerubah) {
+                $this->selaraskanMonitoring($indikatorProgram, $penyelarasMonitoring);
+            }
         });
 
         return redirect()
@@ -194,5 +219,43 @@ class IndikatorProgramController extends Controller
                 'assigned_at' => now(),
             ]);
         }
+    }
+
+    /**
+     * Jumlah baris monitoring yang sudah terisi pada seluruh indikator sub kegiatan
+     * di bawah indikator program ini.
+     */
+    private function hitungMonitoringTerisi(IndikatorProgram $indikatorProgram): int
+    {
+        return Monitoring::whereHas(
+            'indikatorSubKegiatan.subKegiatan.indikatorKegiatan.kegiatan',
+            function (Builder $queryKegiatan) use ($indikatorProgram) {
+                $queryKegiatan->where('id_indikator_program', $indikatorProgram->id_indikator_program);
+            }
+        )
+            ->get()
+            ->filter(fn(Monitoring $barisMonitoring) => $barisMonitoring->sudahTerisi())
+            ->count();
+    }
+
+    /**
+     * Membuat ulang baris monitoring semua indikator sub kegiatan di bawah indikator program ini
+     * agar sesuai dengan periode_pengukuran yang baru.
+     */
+    private function selaraskanMonitoring(
+        IndikatorProgram $indikatorProgram,
+        PenyelarasMonitoring $penyelarasMonitoring
+    ): void {
+        IndikatorSubKegiatan::whereHas(
+            'subKegiatan.indikatorKegiatan.kegiatan',
+            function (Builder $queryKegiatan) use ($indikatorProgram) {
+                $queryKegiatan->where('id_indikator_program', $indikatorProgram->id_indikator_program);
+            }
+        )
+            ->get()
+            ->each(fn(IndikatorSubKegiatan $indikatorSubKegiatan) => $penyelarasMonitoring->selaraskan(
+                $indikatorSubKegiatan,
+                auth()->user()->id_user
+            ));
     }
 }

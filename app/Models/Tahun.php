@@ -25,10 +25,10 @@ class Tahun extends Model
         );
     }
 
-    public function periodeTw()
+    public function periode()
     {
         return $this->hasMany(
-            PeriodeTw::class,
+            Periode::class,
             'id_tahun',
             'id_tahun'
         );
