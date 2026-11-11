@@ -26,6 +26,12 @@ class MonitoringController extends Controller
 
     private const DAFTAR_STATUS = ['notstarted', 'onprogress', 'done'];
 
+    // Nilai id_periode di URL untuk menampilkan monitoring semua periode pada tahun terpilih.
+    private const NILAI_SEMUA_PERIODE = 'semua';
+
+    // Urutan jenis periode: bulanan, triwulan, semester, tahunan.
+    private const URUTAN_JENIS_PERIODE_SQL = "FIELD(periode.jenis_periode, 'bulanan', 'triwulan', 'semester', 'tahunan')";
+
     public function index(Request $request)
     {
         $pengguna = $request->user();
@@ -43,29 +49,38 @@ class MonitoringController extends Controller
 
         // Urutan: bulanan, triwulan, semester, tahunan; di dalam jenis diurutkan menurut urutan_periode.
         $daftarPeriode = Periode::where('id_tahun', $tahunDipilih->id_tahun)
-            ->orderByRaw("FIELD(jenis_periode, 'bulanan', 'triwulan', 'semester', 'tahunan')")
+            ->orderByRaw(self::URUTAN_JENIS_PERIODE_SQL)
             ->orderBy('urutan_periode')
             ->get();
 
         // Dipakai untuk dropdown berkelompok (optgroup) di view.
         $daftarPeriodePerJenis = $daftarPeriode->groupBy('jenis_periode');
 
-        $periodeDipilih = $this->tentukanPeriodeDipilih($request, $tahunDipilih, $daftarPeriode);
+        // Jika "Semua periode" dipilih, $periodeDipilih bernilai null dan data semua periode pada tahun itu ditampilkan.
+        $semuaPeriode = $request->input('id_periode') === self::NILAI_SEMUA_PERIODE;
 
-        abort_if(! $periodeDipilih, 404, 'Periode belum tersedia untuk tahun ini.');
+        $periodeDipilih = $semuaPeriode
+            ? null
+            : $this->tentukanPeriodeDipilih($request, $tahunDipilih, $daftarPeriode);
+
+        abort_if(! $semuaPeriode && ! $periodeDipilih, 404, 'Periode belum tersedia untuk tahun ini.');
+
+        $daftarIdPeriodeDipilih = $semuaPeriode
+            ? $daftarPeriode->pluck('id_periode')->all()
+            : [$periodeDipilih->id_periode];
 
         $statusDipilih = in_array($request->input('status'), self::DAFTAR_STATUS, true)
             ? $request->input('status')
             : null;
 
-        $queryMonitoring = Monitoring::where('id_periode', $periodeDipilih->id_periode)
+        $queryMonitoring = Monitoring::whereIn('monitoring.id_periode', $daftarIdPeriodeDipilih)
             ->whereHas('indikatorSubKegiatan', function (Builder $queryIndikator) use ($pengguna) {
                 $this->batasiSesuaiPeran($queryIndikator, $pengguna);
             });
 
         $jumlahPerStatus = (clone $queryMonitoring)
-            ->selectRaw('status, COUNT(*) as jumlah')
-            ->groupBy('status')
+            ->selectRaw('monitoring.status, COUNT(*) as jumlah')
+            ->groupBy('monitoring.status')
             ->pluck('jumlah', 'status');
 
         $ringkasanStatus = [
@@ -75,15 +90,22 @@ class MonitoringController extends Controller
         ];
 
         if ($statusDipilih !== null) {
-            $queryMonitoring->where('status', $statusDipilih);
+            $queryMonitoring->where('monitoring.status', $statusDipilih);
         }
 
+        // Join ke tabel periode hanya untuk mengurutkan: periode lebih awal tampil lebih dulu
+        // (Januari ... Desember, Triwulan 1 ... 4, Semester 1 ... 2, Tahunan).
         $daftarMonitoring = $queryMonitoring
+            ->join('periode', 'periode.id_periode', '=', 'monitoring.id_periode')
+            ->select('monitoring.*')
             ->with([
+                'periode',
                 'indikatorSubKegiatan.subKegiatan.indikatorKegiatan.kegiatan',
                 'lastUpdatedBy',
             ])
-            ->orderBy('id_monitoring')
+            ->orderByRaw(self::URUTAN_JENIS_PERIODE_SQL)
+            ->orderBy('periode.urutan_periode')
+            ->orderBy('monitoring.id_monitoring')
             ->paginate(10)
             ->withQueryString();
 
@@ -93,6 +115,7 @@ class MonitoringController extends Controller
             'daftarTahun',
             'tahunDipilih',
             'daftarPeriodePerJenis',
+            'semuaPeriode',
             'periodeDipilih',
             'statusDipilih',
             'ringkasanStatus',
@@ -193,7 +216,7 @@ class MonitoringController extends Controller
     }
 
     /**
-     * Menentukan periode yang tampil di halaman monitoring.
+     * Menentukan periode yang tampil di halaman monitoring (selain pilihan "Semua periode").
      *
      * 1. Jika ada id_periode di URL, pakai periode dengan jenis dan urutan yang sama pada tahun yang dipilih
      *    (agar saat tahun diganti, periode yang sama ikut terpilih, misalnya Triwulan 2 tetap Triwulan 2).
@@ -207,7 +230,7 @@ class MonitoringController extends Controller
 
         if ($periodeDariRequest) {
             $periodeSetara = $daftarPeriode->first(
-                fn(Periode $periode) => $periode->jenis_periode === $periodeDariRequest->jenis_periode
+                fn (Periode $periode) => $periode->jenis_periode === $periodeDariRequest->jenis_periode
                     && $periode->urutan_periode === $periodeDariRequest->urutan_periode
             );
 
@@ -219,8 +242,8 @@ class MonitoringController extends Controller
         $daftarPeriodeTriwulan = $daftarPeriode->where('jenis_periode', 'triwulan');
 
         return ($tahunDipilih->tahun == now()->year
-            ? $daftarPeriodeTriwulan->firstWhere('urutan_periode', now()->quarter)
-            : $daftarPeriodeTriwulan->last())
+                ? $daftarPeriodeTriwulan->firstWhere('urutan_periode', now()->quarter)
+                : $daftarPeriodeTriwulan->last())
             ?? $daftarPeriode->first();
     }
 

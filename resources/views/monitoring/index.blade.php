@@ -23,7 +23,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                            <h3 class="mb-sm-0">Monitoring KPI – {{ $periodeDipilih->nama_periode }}</h3>
+                            <h3 class="mb-sm-0">Monitoring KPI – {{ $semuaPeriode ? 'Semua Periode' : $periodeDipilih->nama_periode }}</h3>
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
                                     <li class="breadcrumb-item">KPI Tracker</li>
@@ -51,12 +51,13 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="id_periode" class="form-label">Periode</label>
-                                    <select name="id_periode" id="id_periode" class="form-select"
-                                        onchange="this.form.submit()">
+                                    <select name="id_periode" id="id_periode" class="form-select" onchange="this.form.submit()">
+                                        <option value="semua" class="fw-bold" @selected($semuaPeriode)>Semua periode</option>
                                         @foreach ($daftarPeriodePerJenis as $jenisPeriode => $daftarPeriode)
                                             <optgroup label="{{ ucfirst($jenisPeriode) }}">
                                                 @foreach ($daftarPeriode as $periode)
-                                                    <option value="{{ $periode->id_periode }}" @selected($periode->id_periode === $periodeDipilih->id_periode)>
+                                                    <option value="{{ $periode->id_periode }}"
+                                                        @selected(! $semuaPeriode && $periode->id_periode === $periodeDipilih->id_periode)>
                                                         {{ $periode->nama_periode }}
                                                     </option>
                                                 @endforeach
