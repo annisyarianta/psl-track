@@ -25,7 +25,7 @@ class ProgramController extends Controller
             ->paginate(10);
 
         $aspekOptions = ['kuantitas', 'kualitas'];
-        $periodeOptions = ['triwulan', 'semester', 'tahunan'];
+        $periodeOptions = ['bulanan', 'triwulan', 'semester', 'tahunan'];
         $daftarUnit = Unit::orderBy('nama_unit')->get();
 
         return view(

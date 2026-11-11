@@ -51,12 +51,12 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="id_periode" class="form-label">Periode</label>
-                                    <select name="id_periode" id="id_periode" class="form-select">
+                                    <select name="id_periode" id="id_periode" class="form-select"
+                                        onchange="this.form.submit()">
                                         @foreach ($daftarPeriodePerJenis as $jenisPeriode => $daftarPeriode)
                                             <optgroup label="{{ ucfirst($jenisPeriode) }}">
                                                 @foreach ($daftarPeriode as $periode)
-                                                    <option value="{{ $periode->id_periode }}"
-                                                        @selected($periode->id_periode === $periodeDipilih->id_periode)>
+                                                    <option value="{{ $periode->id_periode }}" @selected($periode->id_periode === $periodeDipilih->id_periode)>
                                                         {{ $periode->nama_periode }}
                                                     </option>
                                                 @endforeach

@@ -279,43 +279,48 @@
         </div>
     </div>
 
-    {{-- modal edit sasaran strategis --}}
-    <div class="modal fade" id="editSasaranStrategisModal{{ $sasaran->id_sasaran_strategis }}" data-bs-backdrop="static"
-        data-bs-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        Edit Sasaran Strategis
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('sasaran-strategis.update', $sasaran->id_sasaran_strategis) }}" method="POST">
-                    @csrf @method('PUT')
-                    <input type="hidden" name="id_tahun" value="{{ $sasaran->id_tahun }}">
-                    <div class="modal-body">
-                        <div class="row mb-2">
-                            <label for="nama_sasaran_strategis" class="col-sm-3 col-form-label">Nama
-                                Sasaran Strategis
-                                <span class="text-danger">*</span></label>
-                            <div class="col-sm-9">
-                                <textarea class="form-control" id="nama_sasaran_strategis" name="nama_sasaran_strategis" rows="4" required>{{ old('nama_sasaran_strategis', $sasaran->nama_sasaran_strategis) }}</textarea>
+    {{-- modal edit sasaran strategis (satu modal per sasaran, harus berada di dalam loop) --}}
+    @foreach ($sasaranStrategis ?? [] as $sasaran)
+        <div class="modal fade" id="editSasaranStrategisModal{{ $sasaran->id_sasaran_strategis }}"
+            data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" role="dialog"
+            aria-labelledby="editSasaranStrategisLabel{{ $sasaran->id_sasaran_strategis }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editSasaranStrategisLabel{{ $sasaran->id_sasaran_strategis }}">
+                            Edit Sasaran Strategis
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('sasaran-strategis.update', $sasaran->id_sasaran_strategis) }}"
+                        method="POST">
+                        @csrf @method('PUT')
+                        <input type="hidden" name="id_tahun" value="{{ $sasaran->id_tahun }}">
+                        <div class="modal-body">
+                            <div class="row mb-2">
+                                <label for="editNamaSasaranStrategis{{ $sasaran->id_sasaran_strategis }}"
+                                    class="col-sm-3 col-form-label">Nama
+                                    Sasaran Strategis
+                                    <span class="text-danger">*</span></label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" id="editNamaSasaranStrategis{{ $sasaran->id_sasaran_strategis }}"
+                                        name="nama_sasaran_strategis" rows="4" required>{{ old('nama_sasaran_strategis', $sasaran->nama_sasaran_strategis) }}</textarea>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                            Batal
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="alert-success">
-                            Simpan
-                        </button>
-                    </div>
-                </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                                Batal
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    @endforeach
 
     {{-- modal tambah indikator kpi --}}
     <div class="modal fade" id="tambahIndikatorKpi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
@@ -443,6 +448,7 @@
         const urlUpdate = @json(route('indikator-kpi.update', ':id'));
         const urlDestroy = @json(route('indikator-kpi.destroy', ':id'));
 
+        // ===== Pilih sasaran strategis: tampilkan indikator KPI-nya =====
         document.addEventListener('click', function(e) {
             if (e.target.closest('.dropdown')) return;
 
@@ -503,44 +509,44 @@
                 </div>
             </div>`).join('');
 
-            // ===== Indikator KPI: edit (modal) =====
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.btn-edit-indikator');
-                if (!btn) return;
-
-                document.getElementById('formEditIndikator').action =
-                    urlUpdate.replace(':id', btn.dataset.id);
-                document.getElementById('editNamaIndikator').value = btn.dataset.nama;
-                document.getElementById('editTarget').value = btn.dataset.target;
-                document.getElementById('editIdSasaran').value = idSasaranAktif;
-            });
-
-            // ===== Hapus Indikator KPI (SweetAlert) =====
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.btn-hapus-indikator');
-                if (!btn) return;
-
-                Swal.fire({
-                    title: 'Hapus data?',
-                    text: 'Data yang sudah dihapus tidak dapat dikembalikan. Data yang masih memiliki data turunan tidak dapat dihapus.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#2ab57d',
-                    cancelButtonColor: '#fd625e',
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal',
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        const form = document.getElementById('formHapusIndikator');
-                        form.action = urlDestroy.replace(':id', btn.dataset.id);
-                        form.submit();
-                    }
-                });
-            });
-
             kosong.classList.toggle('d-none', data.indikator.length > 0);
             emptyState.classList.add('d-none');
             detail.classList.remove('d-none');
+        });
+
+        // ===== Indikator KPI: edit (modal) =====
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-edit-indikator');
+            if (!btn) return;
+
+            document.getElementById('formEditIndikator').action =
+                urlUpdate.replace(':id', btn.dataset.id);
+            document.getElementById('editNamaIndikator').value = btn.dataset.nama;
+            document.getElementById('editTarget').value = btn.dataset.target;
+            document.getElementById('editIdSasaran').value = idSasaranAktif;
+        });
+
+        // ===== Hapus Indikator KPI (SweetAlert) =====
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-hapus-indikator');
+            if (!btn) return;
+
+            Swal.fire({
+                title: 'Hapus data?',
+                text: 'Data yang sudah dihapus tidak dapat dikembalikan. Data yang masih memiliki data turunan tidak dapat dihapus.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#2ab57d',
+                cancelButtonColor: '#fd625e',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('formHapusIndikator');
+                    form.action = urlDestroy.replace(':id', btn.dataset.id);
+                    form.submit();
+                }
+            });
         });
     </script>
 
