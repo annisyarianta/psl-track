@@ -168,7 +168,7 @@
                             </li>
                             <li>
                                 <a href="{{ route('users.index') }}">
-                                    <i data-feather="users"></i>
+                                    <i class="bx bx-user"></i>
                                     <span>User Management</span>
                                 </a>
                             </li>
