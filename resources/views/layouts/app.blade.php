@@ -145,16 +145,17 @@
                             </ul>
                         </li>
 
-                        <li><a href="{{ route('export-laporan.index') }}"><i
-                                    class="bx bx-cloud-download
-                            "></i>
-                                <span>Export Data</span></a></li>
                         <li>
                             <a href="{{ route('task.index') }}">
                                 <i class="bx bx-task"></i>
                                 <span>Task Tracker</span>
                             </a>
                         </li>
+
+                        <li><a href="{{ route('export-laporan.index') }}"><i
+                            class="bx bx-cloud-download
+                    "></i>
+                        <span>Export Data</span></a></li>
 
                         @if (auth()->user()->bisaLihatMenu('master_data'))
                             <li class="menu-title">
