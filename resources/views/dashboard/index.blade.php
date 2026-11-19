@@ -7,9 +7,11 @@
 @section('content')
     @php
         $selectedPeriodWithYear = $hasData
-            ? ($selectedPeriod->jenis_periode === 'tahunan'
-                ? 'periode tahunan ' . $selectedYear->tahun
-                : $selectedPeriodLabel . ' tahun ' . $selectedYear->tahun)
+            ? ($isAllPeriods
+                ? 'semua periode tahun ' . $selectedYear->tahun
+                : ($selectedPeriod->jenis_periode === 'tahunan'
+                    ? 'periode tahunan ' . $selectedYear->tahun
+                    : $selectedPeriodLabel . ' tahun ' . $selectedYear->tahun))
             : null;
     @endphp
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -522,11 +524,12 @@
                                     <label class="psl-dash-filter-field">
                                         Periode
                                         <select name="periode" class="form-select">
+                                            <option value="semua" class="fw-bold" @selected($isAllPeriods)>Semua periode</option>
                                             @foreach ($periodOptionGroups as $periodType => $periodOptionsOfType)
                                                 <optgroup label="{{ ucfirst($periodType) }}">
                                                     @foreach ($periodOptionsOfType as $periodOption)
                                                         <option value="{{ $periodOption['id'] }}"
-                                                            @selected($periodOption['id'] === $selectedPeriod->id_periode)>
+                                                        @selected(! $isAllPeriods && $periodOption['id'] === $selectedPeriod->id_periode)>
                                                             {{ $periodOption['label'] }}
                                                         </option>
                                                     @endforeach
