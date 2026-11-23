@@ -9,22 +9,27 @@ use Illuminate\Http\Request;
 
 class SasaranInisiatifController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $tahunDipilih = $request->input('tahun', now()->year);
+        $semuaTahun = $tahunDipilih === 'semua';
+
         $sasaranStrategis = SasaranStrategis::with([
             'indikatorKpi' => function ($query) {
                 $query->withCount('sasaranInisiatif');
             }
-        ])->get();
-        $sasaranInisiatif = SasaranInisiatif::with(
-            'indikatorKpi.sasaranStrategis.tahun'
-        )
+        ])
+            ->filterTahun($tahunDipilih)
+            ->get();
+
+            $sasaranInisiatif = SasaranInisiatif::with('indikatorKpi.sasaranStrategis.tahun')
+            ->filterTahun($tahunDipilih)
             ->orderByDesc('id_sasaran_inisiatif')
-            ->paginate(10);
+            ->get();
 
         return view(
             'sasaran_inisiatif.index',
-            compact('sasaranInisiatif', 'sasaranStrategis')
+            compact('sasaranInisiatif', 'sasaranStrategis', 'tahunDipilih', 'semuaTahun')
         );
     }
 
@@ -121,17 +126,17 @@ class SasaranInisiatifController extends Controller
     }
 
     public function destroy(SasaranInisiatif $sasaranInisiatif)
-{
-    if ($sasaranInisiatif->indikatorInisiatif()->exists()) {
+    {
+        if ($sasaranInisiatif->indikatorInisiatif()->exists()) {
+            return redirect()
+                ->route('sasaran-inisiatif.index')
+                ->with('error_hapus', 'Sasaran inisiatif tidak dapat dihapus karena masih memiliki indikator inisiatif turunan.');
+        }
+
+        $sasaranInisiatif->delete();
+
         return redirect()
             ->route('sasaran-inisiatif.index')
-            ->with('error_hapus', 'Sasaran inisiatif tidak dapat dihapus karena masih memiliki indikator inisiatif turunan.');
+            ->with('success', 'Sasaran inisiatif berhasil dihapus.');
     }
-
-    $sasaranInisiatif->delete();
-
-    return redirect()
-        ->route('sasaran-inisiatif.index')
-        ->with('success', 'Sasaran inisiatif berhasil dihapus.');
-}
 }

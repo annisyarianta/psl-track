@@ -10,8 +10,10 @@ use Illuminate\Http\Request;
 
 class KegiatanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $tahunDipilih = $request->input('tahun', now()->year);
+        $semuaTahun = $tahunDipilih === 'semua';
         $penggunaLogin = auth()->user();
         $idUnitAsmen = $penggunaLogin->id_unit;
         $apakahPenggunaAsmen = $penggunaLogin->role === 'asmen';
@@ -29,7 +31,7 @@ class KegiatanController extends Controller
                     $queryIndikatorProgram->yangDitugaskanKeUnit($idUnitAsmen);
                 }
             }])
-            ->get();
+            ->filterTahun($tahunDipilih)->get();
 
         $kegiatan = Kegiatan::query()
             ->with('indikatorProgram.program.indikatorInisiatif')
@@ -38,8 +40,10 @@ class KegiatanController extends Controller
                     $queryIndikatorProgram->yangDitugaskanKeUnit($idUnitAsmen);
                 });
             })
+            ->filterTahun($tahunDipilih)
             ->orderByDesc('id_kegiatan')
-            ->paginate(10);
+            ->get();
+
 
         $daftarStaff = $idUnitAsmen
             ? User::where('role', 'staff')
@@ -50,7 +54,7 @@ class KegiatanController extends Controller
 
         return view(
             'kegiatan.index',
-            compact('kegiatan', 'programs', 'daftarStaff')
+            compact('kegiatan', 'programs', 'daftarStaff', 'tahunDipilih', 'semuaTahun')
         );
     }
 

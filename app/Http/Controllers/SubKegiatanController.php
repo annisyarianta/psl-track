@@ -9,8 +9,10 @@ use Illuminate\Http\Request;
 
 class SubKegiatanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $tahunDipilih = $request->input('tahun', now()->year);
+        $semuaTahun = $tahunDipilih === 'semua';
         $penggunaLogin = auth()->user();
 
         $kegiatans = Kegiatan::query()
@@ -22,18 +24,19 @@ class SubKegiatanController extends Controller
                     ->withCount('subKegiatan')
                     ->yangDapatDilihatOleh($penggunaLogin);
             }])
-            ->get();
+            ->filterTahun($tahunDipilih)->get();
 
         $subKegiatan = SubKegiatan::with('indikatorKegiatan.kegiatan.indikatorProgram')
             ->whereHas('indikatorKegiatan', function ($queryIndikatorKegiatan) use ($penggunaLogin) {
                 $queryIndikatorKegiatan->yangDapatDilihatOleh($penggunaLogin);
             })
+            ->filterTahun($tahunDipilih)
             ->orderByDesc('id_sub_kegiatan')
-            ->paginate(10);
+            ->get();
 
         return view(
             'sub_kegiatan.index',
-            compact('subKegiatan', 'kegiatans')
+            compact('subKegiatan', 'kegiatans', 'tahunDipilih', 'semuaTahun')
         );
     }
 

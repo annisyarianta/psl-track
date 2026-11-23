@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Models;
-
+use App\Models\Concerns\FilterTahun;
 use Illuminate\Database\Eloquent\Model;
 
 class SasaranStrategis extends Model
 {
+    use FilterTahun;
+    protected $relasiTahun = 'tahun';
     protected $table = 'sasaran_strategis';
-
     protected $primaryKey = 'id_sasaran_strategis';
 
     public $timestamps = false;

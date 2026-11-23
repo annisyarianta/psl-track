@@ -8,24 +8,17 @@ use Illuminate\Http\Request;
 
 class SasaranStrategisController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sasaranStrategis = SasaranStrategis::with([
-            'tahun',
-            'indikatorKpi' => fn($q) => $q->withCount('sasaranInisiatif'),
-        ])
-            ->withCount('indikatorKpi')
-            ->orderBy('id_sasaran_strategis')
-            ->get();
+        $tahunDipilih = $request->input('tahun', now()->year);
+        $semuaTahun = $tahunDipilih === 'semua';
 
-        $tahunList = Tahun::where('tahun', '<=', now()->year)
-            ->orderByDesc('tahun')
-            ->get();
+        $sasaranStrategis = SasaranStrategis::with('tahun')
+        ->filterTahun($tahunDipilih)
+        ->orderBy('id_sasaran_strategis', 'desc')
+        ->get();
 
-        return view(
-            'sasaran_strategis.index',
-            compact('sasaranStrategis', 'tahunList')
-        );
+        return view('sasaran_strategis.index', compact('sasaranStrategis', 'tahunDipilih', 'semuaTahun'));
     }
 
     public function create()

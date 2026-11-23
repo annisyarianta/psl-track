@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FilterTahun;
 use Illuminate\Database\Eloquent\Model;
 
 class SubKegiatan extends Model
 {
+    use FilterTahun;
+    protected $relasiTahun = 'indikatorKegiatan.kegiatan.indikatorProgram.program.indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun';
     protected $table = 'sub_kegiatan';
-
     protected $primaryKey = 'id_sub_kegiatan';
 
     public $timestamps = false;

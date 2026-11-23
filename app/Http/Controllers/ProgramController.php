@@ -10,19 +10,23 @@ use Illuminate\Http\Request;
 
 class ProgramController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $tahunDipilih = $request->input('tahun', now()->year);
+        $semuaTahun = $tahunDipilih === 'semua';
+
         $sasaranInisiatif = SasaranInisiatif::with([
             'indikatorInisiatif' => function ($query) {
                 $query->withCount('programs');
             }
-        ])->get();
+        ])->filterTahun($tahunDipilih)->get();
 
         $program = Program::with(
             'indikatorInisiatif.sasaranInisiatif.indikatorKpi.sasaranStrategis.tahun'
         )
+            ->filterTahun($tahunDipilih)
             ->orderByDesc('id_program')
-            ->paginate(10);
+            ->get();
 
         $aspekOptions = ['kuantitas', 'kualitas'];
         $periodeOptions = ['bulanan', 'triwulan', 'semester', 'tahunan'];
@@ -30,15 +34,15 @@ class ProgramController extends Controller
 
         return view(
             'program.index',
-            compact('program', 'sasaranInisiatif', 'aspekOptions', 'periodeOptions', 'daftarUnit')
+            compact('program', 'sasaranInisiatif', 'aspekOptions', 'periodeOptions', 'daftarUnit', 'tahunDipilih', 'semuaTahun')
         );
     }
 
     public function byInisiatif($id_indikator_inisiatif)
     {
         $programs = Program::with('indikatorProgram.picUnit.unit')
-        ->where('id_indikator_inisiatif', $id_indikator_inisiatif)
-        ->get();
+            ->where('id_indikator_inisiatif', $id_indikator_inisiatif)
+            ->get();
         return response()->json($programs);
     }
 

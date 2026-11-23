@@ -66,7 +66,20 @@
                                     <h5 class="card-title mb-0">Indikator KPI</h5>
                                     <p class="text-muted mb-0">Dari Dir. Utama</p>
                                 </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <select class="form-select form-select-sm" style="min-width: 90px;" id="filterTahun">
+                                        <option value="semua" {{ $semuaTahun ? 'selected' : '' }}>Semua Tahun
+                                        </option>
+                                        @foreach ($daftarTahun as $tahun)
+                                            <option value="{{ $tahun->tahun }}"
+                                                {{ !$semuaTahun && $tahunDipilih == $tahun->tahun ? 'selected' : '' }}>
+                                                {{ $tahun->tahun }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
+
 
                             <div class="card-body p-0">
                                 @forelse ($sasaranStrategis as $ss)
@@ -95,7 +108,15 @@
                                         </div>
                                     @endif
                                 @empty
-                                    <div class="text-center text-muted p-4">Belum terdapat Indikator KPI dari Dir. Utama.
+                                    <div class="text-center py-5 px-3">
+                                        <div class="avatar-md mx-auto mb-3">
+                                            <div class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                                                <i class="bx bx-loader-circle bx-sm"></i>
+                                            </div>
+                                        </div>
+                                        <h6 class="mb-1">Belum ada indikator KPI tahun ini</h6>
+                                        <p class="text-muted font-size-13 mb-3">
+                                            Belum terdapat Indikator KPI yang diturunkan dari Dir. Utama. </p>
                                     </div>
                                 @endforelse
                             </div>
@@ -404,47 +425,47 @@
                                     <span class="text-muted small text-nowrap flex-shrink-0 ms-3 me-3">${inds.length} indikator</span>
                                 </button>
                                 ${canManage ? `
-                                        <div class="dropdown border-start px-2">
-                                            <button class="btn btn-sm" type="button"
-                                                    data-bs-toggle="dropdown" 
-                                                    aria-expanded="false" title="Aksi ${esc(labelItem)}">
-                                                <i class="bx bx-dots-vertical-rounded font-size-20"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li>
-                                                    <button type="button" class="dropdown-item js-edit-item" data-id="${id}">
-                                                        <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
+                                                <div class="dropdown border-start px-2">
+                                                    <button class="btn btn-sm" type="button"
+                                                            data-bs-toggle="dropdown" 
+                                                            aria-expanded="false" title="Aksi ${esc(labelItem)}">
+                                                        <i class="bx bx-dots-vertical-rounded font-size-20"></i>
                                                     </button>
-                                                </li>
-                                                <li>
-                                                    <button type="button" class="dropdown-item text-danger js-hapus-item" data-id="${id}">
-                                                        <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>` : ''}
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li>
+                                                            <button type="button" class="dropdown-item js-edit-item" data-id="${id}">
+                                                                <i class="mdi mdi-pencil me-2"></i>Edit ${esc(labelItem)}
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item text-danger js-hapus-item" data-id="${id}">
+                                                                <i class="mdi mdi-delete me-2"></i>Hapus ${esc(labelItem)}
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>` : ''}
                             </h2>
                             <div id="item${id}" class="accordion-collapse collapse">
                                 <div class="accordion-body">
                                     ${inds.map((n) => `
-                                                                        <div class="d-flex justify-content-between align-items-start border-bottom py-2">
-                                                                            <div>
-                                                                                <div>${esc(n[F.indNama])}</div>
-                                                                                <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
-                                                                            </div>
-                                                                            ${canManage ? `
+                                                                                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                                                                                    <div>
+                                                                                        <div>${esc(n[F.indNama])}</div>
+                                                                                        <div class="text-muted small">Target : ${esc(n[F.indTarget] || '-')}</div>
+                                                                                    </div>
+                                                                                    ${canManage ? `
                                                 <div class="d-flex gap-1">
                                                     <button class="btn btn-sm btn-light js-edit-indikator" data-item="${id}" data-id="${n[F.indId]}"><i class="mdi mdi-pencil"></i></button>
                                                     <button class="btn btn-sm btn-light js-hapus-indikator" data-id="${n[F.indId]}"><i class="mdi mdi-delete"></i></button>
                                                 </div>` : ''}
-                                                                        </div>`).join('')}
+                                                                                </div>`).join('')}
 
                                     ${canManage ? `
-                                                                        <button type="button" class="btn btn-link btn-sm px-0 mt-2"
-                                                                                data-bs-toggle="modal" data-bs-target="#tambahIndikatorInisiatif"
-                                                                                data-item="${id}">
-                                                                            <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
-                                                                        </button>` : ''}
+                                                                                <button type="button" class="btn btn-link btn-sm px-0 mt-2"
+                                                                                        data-bs-toggle="modal" data-bs-target="#tambahIndikatorInisiatif"
+                                                                                        data-item="${id}">
+                                                                                    <i class="mdi mdi-plus"></i> Tambah ${esc(labelIndikator)}
+                                                                                </button>` : ''}
                                 </div>
                             </div>
                         </div>`;
@@ -568,5 +589,12 @@
 
             restoreSelection();
         })();
+
+        document.getElementById('filterTahun').addEventListener('change', function() {
+            const alamatHalaman = new URL(window.location.href);
+            alamatHalaman.searchParams.set('tahun', this.value);
+            alamatHalaman.searchParams.delete('page');
+            window.location.href = alamatHalaman.toString();
+        });
     </script>
 @endsection

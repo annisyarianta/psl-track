@@ -70,9 +70,11 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <select class="form-select form-select-sm" style="min-width: 90px;"
                                             id="filterTahun">
-                                            <option value="" disabled selected>Tahun</option>
-                                            @foreach ($tahunList as $tahun)
-                                                <option value="{{ $tahun->id_tahun }}">
+                                            <option value="semua" {{ $semuaTahun ? 'selected' : '' }}>Semua Tahun
+                                            </option>
+                                            @foreach ($daftarTahun as $tahun)
+                                                <option value="{{ $tahun->tahun }}"
+                                                    {{ !$semuaTahun && $tahunDipilih == $tahun->tahun ? 'selected' : '' }}>
                                                     {{ $tahun->tahun }}
                                                 </option>
                                             @endforeach
@@ -249,7 +251,7 @@
                                 <select class="form-select" id="tahun" name="id_tahun" required>
                                     <option value="" disabled selected>--- Pilih Tahun
                                         ---</option>
-                                    @foreach ($tahunList as $tahun)
+                                    @foreach ($daftarTahun as $tahun)
                                         <option value="{{ $tahun->id_tahun }}"
                                             {{ old('id_tahun') == $tahun->id_tahun ? 'selected' : '' }}>
                                             {{ $tahun->tahun }}
@@ -573,6 +575,13 @@
                     });
                 });
             });
+        });
+
+        document.getElementById('filterTahun').addEventListener('change', function() {
+            const alamatHalaman = new URL(window.location.href);
+            alamatHalaman.searchParams.set('tahun', this.value);
+            alamatHalaman.searchParams.delete('page');
+            window.location.href = alamatHalaman.toString();
         });
     </script>
 @endsection
