@@ -51,7 +51,7 @@ class NotifikasiController extends Controller
             404
         );
         abort_unless(
-            $this->notifikasiTugasService->penggunaAdalahPenerima($idPengguna, $idTask),
+            $this->notifikasiTugasService->penggunaBerhakAtasNotifikasi($idPengguna, $idTask, $jenisNotifikasi),
             404
         );
 

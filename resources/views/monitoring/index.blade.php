@@ -23,7 +23,8 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                            <h3 class="mb-sm-0">Monitoring KPI – {{ $semuaPeriode ? 'Semua Periode' : $periodeDipilih->nama_periode }}</h3>
+                            <h3 class="mb-sm-0">Monitoring KPI –
+                                {{ $semuaPeriode ? 'Semua Periode' : $periodeDipilih->nama_periode }}</h3>
                             <div class="page-title-right">
                                 <ol class="breadcrumb m-0">
                                     <li class="breadcrumb-item">KPI Tracker</li>
@@ -51,13 +52,14 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="id_periode" class="form-label">Periode</label>
-                                    <select name="id_periode" id="id_periode" class="form-select" onchange="this.form.submit()">
-                                        <option value="semua" class="fw-bold" @selected($semuaPeriode)>Semua periode</option>
+                                    <select name="id_periode" id="id_periode" class="form-select"
+                                        onchange="this.form.submit()">
+                                        <option value="semua" class="fw-bold" @selected($semuaPeriode)>Semua periode
+                                        </option>
                                         @foreach ($daftarPeriodePerJenis as $jenisPeriode => $daftarPeriode)
                                             <optgroup label="{{ ucfirst($jenisPeriode) }}">
                                                 @foreach ($daftarPeriode as $periode)
-                                                    <option value="{{ $periode->id_periode }}"
-                                                        @selected(! $semuaPeriode && $periode->id_periode === $periodeDipilih->id_periode)>
+                                                    <option value="{{ $periode->id_periode }}" @selected(!$semuaPeriode && $periode->id_periode === $periodeDipilih->id_periode)>
                                                         {{ $periode->nama_periode }}
                                                     </option>
                                                 @endforeach
@@ -113,9 +115,9 @@
                                     <tr>
                                         <th class="text-center w-25">Sub Kegiatan</th>
                                         <th class="text-center w-25">Indikator Sub Kegiatan</th>
+                                        <th class="text-center">Capaian</th>
                                         <th class="text-center">Target</th>
-                                        <th class="text-center">Status</th>
-                                        <th class="text-center">Update Terakhir</th>
+                                        <th class="text-center">Progress</th>
                                         <th class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
@@ -132,21 +134,18 @@
                                             <td>
                                                 {{ $indikatorSubKegiatan->nama_indikator_sub_kegiatan }}
                                             </td>
-                                            <td class="text-center">{{ $indikatorSubKegiatan->target_staff ?? '-' }}</td>
-                                            <td class="text-center">
-                                                <span
-                                                    class="badge badge-soft-{{ $tampilanStatus[$monitoring->status]['warna'] }}">
-                                                    {{ $tampilanStatus[$monitoring->status]['label'] }}
-                                                </span>
-                                            </td>
                                             <td>
-                                                @if ($sudahDiisi)
-                                                    {{ $monitoring->last_updated_at->locale('id')->translatedFormat('d M Y H:i') }}
-                                                    <br><small class="text-muted">oleh
-                                                        {{ $monitoring->lastUpdatedBy->nama }}</small>
+                                                @if (filled($monitoring->capaian))
+                                                    @foreach (preg_split('/\r\n|\r|\n/', trim($monitoring->capaian)) as $poinCapaian)
+                                                        <div>{{ $poinCapaian }}</div>
+                                                    @endforeach
                                                 @else
-                                                    -
+                                                    <span class="d-block text-center">-</span>
                                                 @endif
+                                            </td>
+                                            <td class="text-center">{{ $indikatorSubKegiatan->target_staff ?? '-' }}</td>
+                                            <td>
+                                                progress bar
                                             </td>
                                             <td class="align-middle">
                                                 <div class="d-flex justify-content-center align-items-center gap-1">
@@ -201,7 +200,7 @@
                                             <h6 id="detailProgram"></h6>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <p class="text-muted mb-1">Indikator program</p>
+                                            <p class="text-muted mb-1">Indikator Program</p>
                                             <h6 id="detailIndikatorProgram"></h6>
                                         </div>
                                         <div class="col-md-6 mb-3">
@@ -216,7 +215,7 @@
 
                                     <hr>
 
-                                    <p class="text-muted mb-1">Sub kegiatan</p>
+                                    <p class="text-muted mb-1">Sub Kegiatan</p>
                                     <h6 id="detailJudulSubKegiatan"></h6>
                                     <div id="detailIsiSubKegiatan" class="mb-3"></div>
 
@@ -241,7 +240,14 @@
                                     <div id="detailDaftarFile" class="list-group"></div>
                                 </div>
                             </div>
-                            <div class="modal-footer">
+                            <div class="modal-footer d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    @if (filled($monitoring->capaian))
+                                        Terakhir diubah
+                                        {{ $monitoring->last_updated_at->locale('id')->translatedFormat('d M Y') }} oleh
+                                        {{ $monitoring->lastUpdatedBy->nama }}
+                                    @endif
+                                </small>
                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
                             </div>
                         </div>
@@ -280,16 +286,11 @@
                     return;
                 }
 
-                const daftarPoin = document.createElement('ul');
-                daftarPoin.className = 'ps-3 mb-0';
-
                 daftarBaris.forEach(function(baris) {
-                    const itemPoin = document.createElement('li');
-                    itemPoin.textContent = baris;
-                    daftarPoin.appendChild(itemPoin);
+                    const elemenBaris = document.createElement('div');
+                    elemenBaris.textContent = baris;
+                    wadahPoin.appendChild(elemenBaris);
                 });
-
-                wadahPoin.appendChild(daftarPoin);
             }
 
             function isiDaftarFile(daftarFile) {

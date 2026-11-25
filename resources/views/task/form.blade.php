@@ -131,13 +131,34 @@
                                         </div>
                                     </div>
 
+                                    @if (isset($task) && $task->status === 'revisi' && !$apakahPemberiTugas)
+                                        <div class="alert alert-warning">
+                                            <strong>Task ini diminta direvisi:</strong>
+                                            <div style="white-space: pre-line;">{{ $task->keterangan_revisi }}</div>
+                                        </div>
+                                    @endif
+
+                                    @if ($apakahPemberiTugas)
+                                        <div class="row mb-3 d-none" id="blok-keterangan-revisi">
+                                            <label for="keterangan_revisi" class="col-sm-3 col-form-label">Keterangan
+                                                Revisi</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="keterangan_revisi" id="keterangan_revisi" rows="4"
+                                                    class="form-control @error('keterangan_revisi') is-invalid @enderror"
+                                                    placeholder="Tuliskan bagian yang perlu direvisi">{{ old('keterangan_revisi', $task->keterangan_revisi ?? '') }}</textarea>
+                                                @error('keterangan_revisi')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    @endif
+
                                     <div class="row mb-4">
                                         <label class="col-sm-3 col-form-label">Ditugaskan Kepada <span
                                                 class="text-danger">*</span></label>
                                         <div class="col-sm-9">
                                             <select name="penerima_tugas[]" id="penerima_tugas" class="form-control"
-                                                placeholder="Tambah PIC" data-trigger multiple
-                                                @disabled(!$apakahPemberiTugas)>
+                                                placeholder="Tambah PIC" data-trigger multiple @disabled(!$apakahPemberiTugas)>
                                                 @foreach ($daftarCalonPenerima as $calonPenerima)
                                                     <option value="{{ $calonPenerima->id_user }}"
                                                         {{ in_array($calonPenerima->id_user, $idPenerimaTerpilih) ? 'selected' : '' }}>
@@ -153,8 +174,7 @@
                                             <label for="hasil_tugas" class="col-sm-3 col-form-label">Hasil Tugas</label>
                                             <div class="col-sm-9">
                                                 <textarea id="hasil_tugas" name="hasil_tugas" rows="4"
-                                                    class="form-control @error('hasil_tugas') is-invalid @enderror"
-                                                    placeholder="Tuliskan hasil pengerjaan tugas">{{ old('hasil_tugas', $task->hasil_tugas) }}</textarea>
+                                                    class="form-control @error('hasil_tugas') is-invalid @enderror" placeholder="Tuliskan hasil pengerjaan tugas">{{ old('hasil_tugas', $task->hasil_tugas) }}</textarea>
                                                 @error('hasil_tugas')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
@@ -284,6 +304,26 @@
                 inputFileTask.files = kumpulanFileTerpilih.files;
                 tampilkanDaftarFileBaru();
             });
+
+            const daftarInputStatus = document.querySelectorAll('input[name="status"]');
+            const blokKeteranganRevisi = document.getElementById('blok-keterangan-revisi');
+            const isianKeteranganRevisi = document.getElementById('keterangan_revisi');
+
+            function aturTampilanKeteranganRevisi() {
+                if (!blokKeteranganRevisi) return; // user bukan pemberi tugas
+
+                const inputStatusTerpilih = document.querySelector('input[name="status"]:checked');
+                const apakahStatusRevisi = inputStatusTerpilih && inputStatusTerpilih.value === 'revisi';
+
+                blokKeteranganRevisi.classList.toggle('d-none', !apakahStatusRevisi);
+                isianKeteranganRevisi.required = apakahStatusRevisi;
+            }
+
+            daftarInputStatus.forEach(function(inputStatus) {
+                inputStatus.addEventListener('change', aturTampilanKeteranganRevisi);
+            });
+
+            aturTampilanKeteranganRevisi();
         });
     </script>
 @endsection

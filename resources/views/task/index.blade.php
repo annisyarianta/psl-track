@@ -17,6 +17,12 @@
         </script>
     @endif
 
+    @if ($errors->any())
+        <script>
+            alertify.error(@json($errors->first()));
+        </script>
+    @endif
+
     <style>
         #kalender-task {
             --fc-button-bg-color: var(--bs-primary);
@@ -76,6 +82,7 @@
                                 <div class="small">
                                     <span class="badge" style="background:#74788d">To Do</span>
                                     <span class="badge" style="background:#50a5f1">In Progress</span>
+                                    <span class="badge" style="background:#f06548">Revisi</span>
                                     <span class="badge" style="background:#34c38f">Done</span>
                                 </div>
                             </div>
@@ -90,15 +97,29 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
-                            @if ($bolehMemberiTugas)
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5 class="card-title mb-0 font-size-22">List Task</h5>
-                                    <a href="{{ route('task.create') }}"
-                                        class="btn btn-primary waves-effect btn-label waves-light">
-                                        <i class="bx bx-plus label-icon"></i> Tambah Task
-                                    </a>
+                            <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <h5 class="card-title mb-0 font-size-22">List Task</h5>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <ul class="nav nav-pills" id="filter-status-task">
+                                        <li class="nav-item"><a class="nav-link active" href="#"
+                                                data-status="">Semua</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#" data-status="todo">To
+                                                Do</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#" data-status="inprogress">In
+                                                Progress</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#"
+                                                data-status="revisi">Revisi</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#" data-status="done">Done</a>
+                                        </li>
+                                    </ul>
+                                    @if ($bolehMemberiTugas)
+                                        <a href="{{ route('task.create') }}"
+                                            class="btn btn-primary waves-effect btn-label waves-light">
+                                            <i class="bx bx-plus label-icon"></i> Tambah Task
+                                        </a>
+                                    @endif
                                 </div>
-                            @endif
+                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table id="datatable" class="table table-bordered align-middle w-100 table-hover">
@@ -128,17 +149,20 @@
                                                     <td class="{{ $terlambat ? 'text-danger' : '' }} text-center">
                                                         {{ $task->tenggat_waktu->format('d M Y') }}
                                                     </td>
-                                                    <td class="text-center" style="min-width: 140px;">
+                                                    <td class="text-center" style="min-width: 140px;"
+                                                        data-search="{{ $task->status }}">
                                                         @if ($bolehMemperbaruiTask)
                                                             <form action="{{ route('task.status', $task->id_task) }}"
                                                                 method="POST">
                                                                 @csrf
                                                                 @method('PATCH')
                                                                 <select name="status" class="form-select form-select-sm"
-                                                                    onchange="this.form.submit()">
+                                                                    data-status-awal="{{ $task->status }}"
+                                                                    onchange="ubahStatusTask(this)">
                                                                     @foreach ($daftarStatus as $nilaiStatus => $labelStatus)
                                                                         <option value="{{ $nilaiStatus }}"
-                                                                            {{ $task->status === $nilaiStatus ? 'selected' : '' }}>
+                                                                            {{ $task->status === $nilaiStatus ? 'selected' : '' }}
+                                                                            {{ $nilaiStatus === 'revisi' && !$apakahPemberiTugas ? 'disabled' : '' }}>
                                                                             {{ $labelStatus }}
                                                                         </option>
                                                                     @endforeach
@@ -172,8 +196,8 @@
                                                                 onsubmit="return confirm('Hapus task ini?')">
                                                                 @csrf
                                                                 @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                                    title="Hapus">
+                                                                <button type="submit"
+                                                                    class="btn btn-sm btn-outline-danger" title="Hapus">
                                                                     <i class="bx bx-trash"></i>
                                                                 </button>
                                                             </form>
@@ -230,8 +254,12 @@
                                                 <th scope="row">Status</th>
                                                 <td id="detail-status"></td>
                                             </tr>
+                                            <tr id="baris-keterangan-revisi" class="d-none">
+                                                <th scope="row">Keterangan Revisi</th>
+                                                <td id="detail-keterangan-revisi" style="white-space: pre-line;"></td>
+                                            </tr>
                                             <tr>
-                                                <th scope="row">Hasil</th>
+                                                <th scope="row">Hasil Tugas</th>
                                                 <td id="detail-hasil" style="white-space: pre-line;"></td>
                                             </tr>
                                             <tr>
@@ -247,6 +275,31 @@
                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {{-- Modal Revisi (untuk ubah status langsung di tabel) --}}
+                <div class="modal fade" id="modalRevisiTask" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <form method="POST" id="form-revisi-task" class="modal-content">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value="revisi">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Revisi Task</h4>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <label for="keterangan-revisi-modal" class="form-label">Keterangan Revisi</label>
+                                <textarea name="keterangan_revisi" id="keterangan-revisi-modal" rows="4" class="form-control"
+                                    placeholder="Tuliskan bagian yang perlu direvisi" required></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-warning">Kirim Revisi</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -270,6 +323,9 @@
                 document.getElementById('detail-tenggat').textContent = detailTask.tenggatWaktu;
                 document.getElementById('detail-pemberi').textContent = detailTask.pemberiTugas;
                 document.getElementById('detail-status').textContent = detailTask.labelStatus;
+                document.getElementById('detail-keterangan-revisi').textContent = detailTask.keteranganRevisi || '';
+                document.getElementById('baris-keterangan-revisi')
+                    .classList.toggle('d-none', !detailTask.keteranganRevisi);
                 document.getElementById('detail-hasil').textContent = detailTask.hasilTugas;
 
                 kontainerDaftarPenerima.innerHTML = '';
@@ -305,11 +361,32 @@
             }
 
             // Tabel
-            $('#datatable').DataTable();
+            const tabelTask = $('#datatable').DataTable();
 
             $('#datatable').on('click', '.tombol-detail-task', function() {
                 tampilkanDetailTask(JSON.parse(this.dataset.detail));
             });
+
+            // Filter status
+            $('#filter-status-task .nav-link').on('click', function(event) {
+                event.preventDefault();
+                const statusDipilih = $(this).data('status');
+                $('#filter-status-task .nav-link').removeClass('active');
+                $(this).addClass('active');
+                tabelTask
+                    .column(3)
+                    .search(statusDipilih ? '^' + statusDipilih + '$' : '', true, false)
+                    .draw();
+            });
+
+            tabelTask.on('order.dt search.dt draw.dt', function() {
+                tabelTask.column(0, {
+                    search: 'applied',
+                    order: 'applied'
+                }).nodes().each(function(kolomNomor, urutan) {
+                    kolomNomor.innerHTML = urutan + 1;
+                });
+            }).draw();
 
             // Kalender
             const kalenderTask = new FullCalendar.Calendar(document.getElementById('kalender-task'), {
@@ -361,6 +438,38 @@
                     '',
                     window.location.pathname + (sisaParameter ? '?' + sisaParameter : '')
                 );
+            }
+        });
+
+
+        let selectStatusYangDiubah = null;
+        let apakahFormRevisiDikirim = false;
+
+        function ubahStatusTask(selectStatus) {
+            if (selectStatus.value !== 'revisi') {
+                selectStatus.form.submit();
+                return;
+            }
+
+            const modalElemen = document.getElementById('modalRevisiTask');
+            const formRevisiTask = document.getElementById('form-revisi-task');
+
+            selectStatusYangDiubah = selectStatus;
+            apakahFormRevisiDikirim = false;
+
+            formRevisiTask.action = selectStatus.form.action;
+            document.getElementById('keterangan-revisi-modal').value = '';
+
+            bootstrap.Modal.getOrCreateInstance(modalElemen).show();
+        }
+
+        document.getElementById('form-revisi-task').addEventListener('submit', function() {
+            apakahFormRevisiDikirim = true;
+        });
+
+        document.getElementById('modalRevisiTask').addEventListener('hidden.bs.modal', function() {
+            if (!apakahFormRevisiDikirim && selectStatusYangDiubah) {
+                selectStatusYangDiubah.value = selectStatusYangDiubah.dataset.statusAwal;
             }
         });
     </script>

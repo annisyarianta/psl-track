@@ -17,7 +17,6 @@ return new class extends Migration
             $table->timestamp('dibaca_terlambat_pada')->nullable();
         });
 
-        // Isi data lama agar task lama punya waktu penugasan
         DB::statement(
             'UPDATE pic_task
             JOIN task ON task.id_task = pic_task.id_task

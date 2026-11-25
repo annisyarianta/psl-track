@@ -13,12 +13,14 @@ class Task extends Model
     public const DAFTAR_STATUS = [
         'todo'       => 'To Do',
         'inprogress' => 'In Progress',
+        'revisi' => 'Revisi',
         'done'       => 'Done',
     ];
 
     public const WARNA_BADGE_STATUS = [
         'todo'       => 'badge-soft-dark small px-2 py-1',
         'inprogress' => 'badge-soft-info small px-2 py-1',
+        'revisi' => 'bg-soft-danger small px-2 py-1',
         'done'       => 'badge-soft-success small px-2 py-1',
     ];
 
@@ -29,13 +31,21 @@ class Task extends Model
         'tenggat_waktu',
         'status',
         'hasil_tugas',
+        'keterangan_revisi',
         'assigned_by',
         'assigned_at',
+        'diselesaikan_oleh',
+        'diselesaikan_pada',
+        'dibaca_selesai_pada',
+        'direvisi_pada',
     ];
 
     protected $casts = [
         'tenggat_waktu' => 'date',
         'assigned_at'   => 'datetime',
+        'diselesaikan_pada' => 'datetime',
+        'dibaca_selesai_pada' => 'datetime',
+        'direvisi_pada' => 'datetime',
     ];
 
     public function program()

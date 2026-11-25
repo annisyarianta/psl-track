@@ -145,8 +145,6 @@ Route::middleware([
         |--------------------------------------------------------------------------
         | Resource per menu KPI Tracker
         |--------------------------------------------------------------------------
-        | lihat  : index dan show
-        | kelola : create, store, edit, update, destroy
         */
     $daftarResourcePerMenu = [
         'dir_utama' => [
@@ -185,11 +183,6 @@ Route::middleware([
         }
     }
 
-    /*
-        |--------------------------------------------------------------------------
-        | Route lain (belum dibatasi per menu)
-        |--------------------------------------------------------------------------
-        */
     Route::patch('task-tracker/{task}/status', [TaskController::class, 'updateStatus'])->name('task.status');
 
     Route::resource('tahun', TahunController::class);

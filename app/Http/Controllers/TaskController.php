@@ -17,10 +17,13 @@ use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
+    private const STATUS_REVISI = 'revisi';
+
     private const WARNA_STATUS = [
         'todo'       => '#74788d',
         'inprogress' => '#50a5f1',
         'done'       => '#34c38f',
+        'revisi'     => '#f06548',
     ];
 
     public function index()
@@ -60,7 +63,8 @@ class TaskController extends Controller
             'task'                => null,
             'daftarProgram'       => Program::orderBy('nama_program')->get(),
             'daftarCalonPenerima' => $this->ambilCalonPenerima(),
-            'daftarStatus'        => Task::DAFTAR_STATUS,
+            // Task baru tidak bisa langsung berstatus revisi
+            'daftarStatus'        => $this->ambilDaftarStatusYangBolehDipilih(true, true),
             'idUserLogin'         => (int) Auth::user()->id_user,
             'apakahPemberiTugas'  => true,
         ]);
@@ -70,7 +74,7 @@ class TaskController extends Controller
     {
         $this->pastikanBolehMemberiTugas();
 
-        $dataTervalidasi = $this->validasiForm($request);
+        $dataTervalidasi = $this->validasiForm($request, true, true);
 
         DB::transaction(function () use ($request, $dataTervalidasi) {
             $task = Task::create([
@@ -109,7 +113,8 @@ class TaskController extends Controller
             'daftarCalonPenerima' => $apakahPemberiTugas
                 ? $this->ambilCalonPenerima()
                 : $task->penerimaTugas->sortBy('nama')->values(),
-            'daftarStatus'        => Task::DAFTAR_STATUS,
+            // Opsi Revisi hanya muncul untuk pemberi tugas
+            'daftarStatus'        => $this->ambilDaftarStatusYangBolehDipilih($apakahPemberiTugas),
             'idUserLogin'         => $idUserLogin,
             'apakahPemberiTugas'  => $apakahPemberiTugas,
         ]);
@@ -123,6 +128,8 @@ class TaskController extends Controller
         $apakahPemberiTugas = $task->apakahPemberiTugas($idUserLogin);
         $tenggatLama        = Carbon::parse($task->tenggat_waktu)->toDateString();
         $dataTervalidasi    = $this->validasiForm($request, $apakahPemberiTugas);
+        $statusLama           = $task->status;
+        $keteranganRevisiLama = $task->keterangan_revisi;
 
         DB::transaction(function () use (
             $request,
@@ -130,15 +137,18 @@ class TaskController extends Controller
             $dataTervalidasi,
             $apakahPemberiTugas,
             $idUserLogin,
-            $tenggatLama
+            $tenggatLama,
+            $statusLama,
+            $keteranganRevisiLama,
         ) {
             if ($apakahPemberiTugas) {
                 $task->update(array_merge([
-                    'id_program'      => $dataTervalidasi['id_program'] ?? null,
-                    'judul_tugas'     => $dataTervalidasi['judul_tugas'],
-                    'deskripsi_tugas' => $dataTervalidasi['deskripsi_tugas'],
-                    'tenggat_waktu'   => $dataTervalidasi['tenggat_waktu'],
-                    'status'          => $dataTervalidasi['status'],
+                    'id_program'        => $dataTervalidasi['id_program'] ?? null,
+                    'judul_tugas'       => $dataTervalidasi['judul_tugas'],
+                    'deskripsi_tugas'   => $dataTervalidasi['deskripsi_tugas'],
+                    'tenggat_waktu'     => $dataTervalidasi['tenggat_waktu'],
+                    'status'            => $dataTervalidasi['status'],
+                    'keterangan_revisi' => $this->tentukanKeteranganRevisi($dataTervalidasi, $task),
                 ], Arr::only($dataTervalidasi, ['hasil_tugas'])));
 
                 $this->perbaruiPenerimaTugas($task, $dataTervalidasi['penerima_tugas']);
@@ -147,9 +157,10 @@ class TaskController extends Controller
                     $this->resetStatusBacaPengingatTenggat($task);
                 }
             } else {
+                // Penerima tidak bisa memilih revisi, jadi keterangan revisi tidak disentuh
                 $task->update(Arr::only($dataTervalidasi, ['status', 'hasil_tugas']));
             }
-
+            $this->catatKejadianNotifikasiStatus($task, $statusLama, $keteranganRevisiLama, $idUserLogin);
             $this->hapusFileTerpilih($request, $task, $apakahPemberiTugas, $idUserLogin);
             $this->simpanFileTask($request, $task);
         });
@@ -173,32 +184,63 @@ class TaskController extends Controller
     public function updateStatus(Request $request, Task $task)
     {
         $this->pastikanPemberiAtauPenerimaTugas($task);
-
+        $apakahPemberiTugas = $task->apakahPemberiTugas((int) Auth::user()->id_user);
         $dataTervalidasi = $request->validate([
-            'status' => ['required', Rule::in(array_keys(Task::DAFTAR_STATUS))],
-        ]);
+            'status'            => [
+                'required',
+                Rule::in(array_keys($this->ambilDaftarStatusYangBolehDipilih($apakahPemberiTugas))),
+            ],
+            'keterangan_revisi' => ['nullable', 'required_if:status,' . self::STATUS_REVISI, 'string', 'max:1000'],
+        ], $this->susunPesanValidasiStatus());
 
-        $task->update(['status' => $dataTervalidasi['status']]);
+        $dataPembaruan = ['status' => $dataTervalidasi['status']];
+        $apakahStatusRevisi = $dataTervalidasi['status'] === self::STATUS_REVISI;
 
-        return back()->with('success', 'Status task diperbarui.');
+        if ($apakahStatusRevisi) {
+            $dataPembaruan['keterangan_revisi'] = $dataTervalidasi['keterangan_revisi'];
+        }
+
+        $statusLama           = $task->status;
+        $keteranganRevisiLama = $task->keterangan_revisi;
+
+        $task->update($dataPembaruan);
+
+        $this->catatKejadianNotifikasiStatus(
+            $task,
+            $statusLama,
+            $keteranganRevisiLama,
+            (int) Auth::user()->id_user
+        );
+
+        return back()->with(
+            'success',
+            $apakahStatusRevisi ? 'Task dikembalikan untuk direvisi.' : 'Status task diperbarui.'
+        );
     }
 
     // ---------- Helper ----------
 
-    private function validasiForm(Request $request, bool $apakahPemberiTugas = true): array
-    {
+    private function validasiForm(
+        Request $request,
+        bool $apakahPemberiTugas = true,
+        bool $apakahTaskBaru = false
+    ): array {
+        $daftarNilaiStatusDiizinkan = array_keys(
+            $this->ambilDaftarStatusYangBolehDipilih($apakahPemberiTugas, $apakahTaskBaru)
+        );
+
         $aturanUntukSemuaPeran = [
-            'status'       => ['required', Rule::in(array_keys(Task::DAFTAR_STATUS))],
-            'hasil_tugas'  => ['nullable', 'string'],
-            'file_task'    => ['nullable', 'array'],
-            'file_task.*'  => ['file', 'max:10240'], // 10 MB per file
-            'hapus_file'   => ['nullable', 'array'],
-            'hapus_file.*' => ['integer'],
+            'status'            => ['required', Rule::in($daftarNilaiStatusDiizinkan)],
+            'keterangan_revisi' => ['nullable', 'required_if:status,' . self::STATUS_REVISI, 'string', 'max:1000'],
+            'hasil_tugas'       => ['nullable', 'string'],
+            'file_task'         => ['nullable', 'array'],
+            'file_task.*'       => ['file', 'max:10240'], // 10 MB per file
+            'hapus_file'        => ['nullable', 'array'],
+            'hapus_file.*'      => ['integer'],
         ];
 
-        // Penerima tugas tidak mengirim judul, deskripsi, tenggat, program, dan PIC
         if (! $apakahPemberiTugas) {
-            return $request->validate($aturanUntukSemuaPeran);
+            return $request->validate($aturanUntukSemuaPeran, $this->susunPesanValidasiStatus());
         }
 
         $daftarIdCalonPenerima = $this->ambilCalonPenerima()->pluck('id_user')->all();
@@ -210,10 +252,72 @@ class TaskController extends Controller
             'tenggat_waktu'    => ['required', 'date'],
             'penerima_tugas'   => ['required', 'array', 'min:1'],
             'penerima_tugas.*' => ['integer', Rule::in($daftarIdCalonPenerima)],
-        ]), [
+        ]), array_merge($this->susunPesanValidasiStatus(), [
             'penerima_tugas.required' => 'Pilih minimal satu penerima tugas.',
             'penerima_tugas.*.in'     => 'Penerima tugas tidak sesuai dengan hak akses Anda.',
-        ]);
+        ]));
+    }
+
+    private function susunPesanValidasiStatus(): array
+    {
+        return [
+            'status.in'                      => 'Status yang dipilih tidak diperbolehkan untuk Anda.',
+            'keterangan_revisi.required_if'  => 'Keterangan revisi wajib diisi saat status Revisi.',
+        ];
+    }
+
+
+    private function ambilDaftarStatusYangBolehDipilih(
+        bool $apakahPemberiTugas,
+        bool $apakahTaskBaru = false
+    ): array {
+        if ($apakahPemberiTugas && ! $apakahTaskBaru) {
+            return Task::DAFTAR_STATUS;
+        }
+
+        return Arr::except(Task::DAFTAR_STATUS, [self::STATUS_REVISI]);
+    }
+
+    private function tentukanKeteranganRevisi(array $dataTervalidasi, Task $task): ?string
+    {
+        return $dataTervalidasi['status'] === self::STATUS_REVISI
+            ? $dataTervalidasi['keterangan_revisi']
+            : $task->keterangan_revisi;
+    }
+
+    private function catatKejadianNotifikasiStatus(
+        Task $task,
+        string $statusLama,
+        ?string $keteranganRevisiLama,
+        int $idUserLogin
+    ): void {
+        $apakahPemberiTugas = $task->apakahPemberiTugas($idUserLogin);
+        if ($task->status === 'done' && $statusLama !== 'done' && ! $apakahPemberiTugas) {
+            $task->update([
+                'diselesaikan_oleh'   => $idUserLogin,
+                'diselesaikan_pada'   => now(),
+                'dibaca_selesai_pada' => null,
+            ]);
+        }
+
+        if ($task->status !== 'done' && $statusLama === 'done') {
+            $task->update([
+                'diselesaikan_oleh'   => null,
+                'diselesaikan_pada'   => null,
+                'dibaca_selesai_pada' => null,
+            ]);
+        }
+
+        $apakahRevisiBaru = $task->status === self::STATUS_REVISI
+            && ($statusLama !== self::STATUS_REVISI || $task->keterangan_revisi !== $keteranganRevisiLama);
+
+        if ($apakahRevisiBaru) {
+            $task->update(['direvisi_pada' => now()]);
+
+            DB::table('pic_task')
+                ->where('id_task', $task->id_task)
+                ->update(['dibaca_revisi_pada' => null]);
+        }
     }
 
     private function perbaruiPenerimaTugas(Task $task, array $daftarIdPenerimaBaru): void
@@ -280,7 +384,6 @@ class TaskController extends Controller
 
         $queryFile = $task->files()->whereIn('id_file_task', $daftarIdFileDihapus);
 
-        // Penerima hanya boleh menghapus file yang ia unggah sendiri
         if (! $apakahPemberiTugas) {
             $queryFile->where('uploaded_by', $idUserLogin);
         }
@@ -341,19 +444,20 @@ class TaskController extends Controller
         $apakahPenerimaTugas = $task->penerimaTugas->contains('id_user', $idUserLogin);
 
         return [
-            'namaProgram'    => $task->program->nama_program ?? '-',
-            'judulTugas'     => $task->judul_tugas,
-            'deskripsiTugas' => $task->deskripsi_tugas,
-            'hasilTugas'     => $task->hasil_tugas ?: '-',
-            'tenggatWaktu'   => $task->tenggat_waktu->format('d M Y'),
-            'pemberiTugas'   => $task->pemberiTugas->nama ?? '-',
-            'daftarPenerima' => $task->penerimaTugas->pluck('nama')->all(),
-            'labelStatus'    => Task::DAFTAR_STATUS[$task->status],
-            'daftarFile'     => $task->files->map(fn(FileTask $fileTask) => [
+            'namaProgram'      => $task->program->nama_program ?? '-',
+            'judulTugas'       => $task->judul_tugas,
+            'deskripsiTugas'   => $task->deskripsi_tugas,
+            'hasilTugas'       => $task->hasil_tugas ?: '-',
+            'tenggatWaktu'     => $task->tenggat_waktu->format('d M Y'),
+            'pemberiTugas'     => $task->pemberiTugas->nama ?? '-',
+            'daftarPenerima'   => $task->penerimaTugas->pluck('nama')->all(),
+            'labelStatus'      => Task::DAFTAR_STATUS[$task->status],
+            'keteranganRevisi' => $task->keterangan_revisi,
+            'daftarFile'       => $task->files->map(fn(FileTask $fileTask) => [
                 'namaFile' => $fileTask->nama_file,
                 'urlFile'  => asset('storage/' . $fileTask->path_file),
             ])->all(),
-            'urlEdit'        => ($apakahPemberiTugas || $apakahPenerimaTugas)
+            'urlEdit'          => ($apakahPemberiTugas || $apakahPenerimaTugas)
                 ? route('task.edit', $task->id_task)
                 : null,
         ];
