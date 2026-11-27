@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -23,6 +24,9 @@ class DashboardController extends Controller
     private const TASK_STATUS_TODO = 'todo';
     private const TASK_STATUS_IN_PROGRESS = 'inprogress';
     private const TASK_STATUS_DONE = 'done';
+    private const TASK_STATUS_REVISION = 'revisi';
+
+    private const TASK_STATUS_PER_PERSON_VISIBLE_ROWS = 5;
 
     private const ROLE_MANAGER = 'manager';
     private const ROLE_ASMEN = 'asmen';
@@ -168,6 +172,9 @@ class DashboardController extends Controller
             ->whereBetween('tenggat_waktu', [today(), today()->addDays(3)->endOfDay()])
             ->count();
 
+        /* ---------- Status task per orang ---------- */
+        $taskStatusPerPerson = $this->buildTaskStatusPerPerson($loggedInUser, $scopeType, $scopeId);
+
         $fillingNoteSuffix = $isAllPeriods && $selectedYear->tahun == now()->year
             ? ' · periode yang sudah berjalan'
             : '';
@@ -288,6 +295,10 @@ class DashboardController extends Controller
             'monitoringChartData' => $monitoringChartData,
             'taskChartData' => $taskChartData,
             'totalTaskCount' => $totalTaskCount,
+            'taskStatusPerPersonTitle' => $taskStatusPerPerson['title'],
+            'taskStatusPerPersonRows' => $taskStatusPerPerson['rows'],
+            'taskStatusPerPersonVisibleRows' => self::TASK_STATUS_PER_PERSON_VISIBLE_ROWS,
+            'isOwnTaskStatusOnly' => $scopeType === self::SCOPE_STAFF,
             'rankingTitle' => $rankingTitle,
             'rankingItems' => $rankingItems,
             'attentionItems' => $attentionItems,
@@ -458,6 +469,71 @@ class DashboardController extends Controller
         return $taskQuery;
     }
 
+    /**
+     * Jumlah task per status untuk setiap orang di dalam cakupan akses user yang login.
+     * Satu task dihitung untuk setiap penerimanya (tabel pic_task).
+     */
+    private function buildTaskStatusPerPerson(User $loggedInUser, string $scopeType, $scopeId): array
+    {
+        $peopleQuery = User::query()->orderBy('nama');
+
+        if ($scopeType === self::SCOPE_STAFF) {
+            $peopleQuery->where('id_user', $scopeId);
+        } elseif ($scopeType === self::SCOPE_UNIT) {
+            // Staff di unit yang sama, ditambah asmen yang sedang login.
+            $peopleQuery->where(function (Builder $query) use ($scopeId, $loggedInUser) {
+                $query->where(function (Builder $staffQuery) use ($scopeId) {
+                    $staffQuery->where('role', self::ROLE_STAFF)->where('id_unit', $scopeId);
+                })->orWhere('id_user', $loggedInUser->getKey());
+            });
+        } else {
+            $peopleQuery->whereIn('role', [self::ROLE_ASMEN, self::ROLE_STAFF]);
+        }
+
+        $people = $peopleQuery->get();
+        $unitNamesById = Unit::pluck('nama_unit', 'id_unit');
+
+        $statusCountsByUserId = DB::table('pic_task')
+            ->join('task', 'task.id_task', '=', 'pic_task.id_task')
+            ->whereIn('pic_task.id_user', $people->pluck('id_user')->all())
+            ->selectRaw('pic_task.id_user, task.status, COUNT(*) as total')
+            ->groupBy('pic_task.id_user', 'task.status')
+            ->get()
+            ->groupBy('id_user');
+
+        $rows = $people->map(function (User $person) use ($statusCountsByUserId, $unitNamesById, $scopeType, $loggedInUser) {
+            $countByStatus = $statusCountsByUserId
+                ->get($person->getKey(), collect())
+                ->pluck('total', 'status');
+
+            $counts = [
+                'todo' => (int) ($countByStatus[self::TASK_STATUS_TODO] ?? 0),
+                'inProgress' => (int) ($countByStatus[self::TASK_STATUS_IN_PROGRESS] ?? 0),
+                'revisi' => (int) ($countByStatus[self::TASK_STATUS_REVISION] ?? 0),
+                'done' => (int) ($countByStatus[self::TASK_STATUS_DONE] ?? 0),
+            ];
+
+            return [
+                'name' => $person->nama,
+                'initials' => $this->buildInitials($person->nama),
+                'subtitle' => $scopeType === self::SCOPE_ALL
+                    ? ($unitNamesById[$person->id_unit] ?? '-')
+                    : ($person->role === self::ROLE_ASMEN ? 'Asmen' : 'Staff'),
+                'isLoggedInUser' => (int) $person->getKey() === (int) $loggedInUser->getKey(),
+                'counts' => $counts,
+                'total' => array_sum($counts),
+            ];
+        })->values()->all();
+
+        $title = match ($scopeType) {
+            self::SCOPE_STAFF => 'Status task Anda',
+            self::SCOPE_UNIT => 'Status task per orang di unit',
+            default => 'Status task per orang',
+        };
+
+        return ['title' => $title, 'rows' => $rows];
+    }
+
     private function buildRankingBlock(User $loggedInUser, string $scopeType, $scopeId, array $periodIds): array
     {
         if ($scopeType === self::SCOPE_STAFF) {
@@ -540,6 +616,19 @@ class DashboardController extends Controller
     private function calculatePercentage(int $part, int $total): int
     {
         return $total > 0 ? (int) round($part / $total * 100) : 0;
+    }
+
+    private function buildInitials(?string $fullName): string
+    {
+        $nameWithoutBackTitle = trim(explode(',', (string) $fullName)[0]);
+        $nameWords = preg_split('/\s+/', $nameWithoutBackTitle, -1, PREG_SPLIT_NO_EMPTY);
+
+        $initials = mb_strtoupper(implode('', array_map(
+            fn($word) => mb_substr($word, 0, 1),
+            array_slice($nameWords, 0, 2)
+        )));
+
+        return $initials !== '' ? $initials : '?';
     }
 
     private function buildGreetingName(?string $fullName): string

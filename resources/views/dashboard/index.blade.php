@@ -412,6 +412,241 @@
             color: var(--bs-body-color);
         }
 
+        /* ---------- Status task per orang ---------- */
+        .psl-dash-person-section {
+            margin-bottom: 20px;
+        }
+
+        .psl-dash-person-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .psl-dash-person-search {
+            width: 220px;
+            max-width: 100%;
+        }
+
+        .psl-dash-person-scroll {
+            overflow-x: auto;
+        }
+
+        .psl-dash-person-table {
+            width: 100%;
+            min-width: 480px;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        .psl-dash-person-table th {
+            padding: 10px 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--bs-secondary-color, #6b7280);
+        }
+
+        .psl-dash-person-table td {
+            padding: 11px 6px;
+            text-align: center;
+            vertical-align: middle;
+            border-top: 1px solid var(--psl-dash-track);
+        }
+
+        .psl-dash-person-table .psl-dash-person-name-cell {
+            width: 34%;
+            text-align: left;
+        }
+
+        .psl-dash-person-table .psl-dash-person-total-cell {
+            width: 12%;
+        }
+
+        .psl-dash-person-identity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .psl-dash-person-avatar {
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #4338ca;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.16);
+        }
+
+        .psl-dash-person-identity-text {
+            min-width: 0;
+        }
+
+        .psl-dash-person-name {
+            margin: 0;
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .psl-dash-person-self {
+            font-weight: 500;
+            color: var(--bs-secondary-color, #6b7280);
+        }
+
+        .psl-dash-person-subtitle {
+            margin: 0;
+            font-size: 12px;
+            color: var(--bs-secondary-color, #6b7280);
+        }
+
+        .psl-dash-person-pill {
+            display: inline-block;
+            min-width: 34px;
+            padding: 3px 10px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 999px;
+        }
+
+        .psl-dash-person-pill-todo {
+            color: #475569;
+            background: rgba(100, 116, 139, 0.16);
+        }
+
+        .psl-dash-person-pill-progress {
+            color: #4338ca;
+            background: rgba(99, 102, 241, 0.16);
+        }
+
+        .psl-dash-person-pill-revision {
+            color: #be123c;
+            background: rgba(225, 29, 72, 0.15);
+        }
+
+        .psl-dash-person-pill-done {
+            color: #047857;
+            background: rgba(16, 185, 129, 0.16);
+        }
+
+        .psl-dash-person-zero {
+            color: var(--bs-secondary-color, #6b7280);
+            opacity: 0.6;
+        }
+
+        .psl-dash-person-total {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .psl-dash-person-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            font-size: 13px;
+            color: var(--bs-secondary-color, #6b7280);
+            border-top: 1px solid var(--psl-dash-track);
+        }
+
+        .psl-dash-person-tiles {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .psl-dash-person-tile {
+            padding: 14px 16px;
+            border: 1.5px solid transparent;
+            border-radius: 16px;
+        }
+
+        .psl-dash-person-tile-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--bs-secondary-color, #6b7280);
+        }
+
+        .psl-dash-person-tile-value {
+            margin: 4px 0 0;
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .psl-dash-person-tile-value-zero {
+            opacity: 0.45;
+        }
+
+        .psl-dash-person-tile-todo {
+            background: linear-gradient(135deg, rgba(148, 163, 184, 0.22), rgba(148, 163, 184, 0.05));
+            border-color: rgba(148, 163, 184, 0.5);
+        }
+
+        .psl-dash-person-tile-todo .psl-dash-person-tile-value {
+            color: #475569;
+        }
+
+        .psl-dash-person-tile-progress {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(99, 102, 241, 0.05));
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .psl-dash-person-tile-progress .psl-dash-person-tile-value {
+            color: #4338ca;
+        }
+
+        .psl-dash-person-tile-revision {
+            background: linear-gradient(135deg, rgba(225, 29, 72, 0.22), rgba(225, 29, 72, 0.05));
+            border-color: rgba(225, 29, 72, 0.5);
+        }
+
+        .psl-dash-person-tile-revision .psl-dash-person-tile-value {
+            color: #be123c;
+        }
+
+        .psl-dash-person-tile-done {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.05));
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+
+        .psl-dash-person-tile-done .psl-dash-person-tile-value {
+            color: #047857;
+        }
+
+        @media (max-width: 767.98px) {
+            .psl-dash-person-tiles {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .psl-dash-person-search {
+                width: 100%;
+            }
+
+            .psl-dash-person-table .psl-dash-person-total-cell {
+                display: none;
+            }
+
+            .psl-dash-person-table .psl-dash-person-name-cell {
+                width: 36%;
+            }
+        }
+
         /* ---------- Responsive ---------- */
         @media (max-width: 1199.98px) {
             .psl-dash-summary-grid {
@@ -524,12 +759,13 @@
                                     <label class="psl-dash-filter-field">
                                         Periode
                                         <select name="periode" class="form-select">
-                                            <option value="semua" class="fw-bold" @selected($isAllPeriods)>Semua periode</option>
+                                            <option value="semua" class="fw-bold" @selected($isAllPeriods)>Semua
+                                                periode</option>
                                             @foreach ($periodOptionGroups as $periodType => $periodOptionsOfType)
                                                 <optgroup label="{{ ucfirst($periodType) }}">
                                                     @foreach ($periodOptionsOfType as $periodOption)
                                                         <option value="{{ $periodOption['id'] }}"
-                                                        @selected(! $isAllPeriods && $periodOption['id'] === $selectedPeriod->id_periode)>
+                                                            @selected(!$isAllPeriods && $periodOption['id'] === $selectedPeriod->id_periode)>
                                                             {{ $periodOption['label'] }}
                                                         </option>
                                                     @endforeach
@@ -605,6 +841,155 @@
                                             <i class="mdi mdi-clipboard-text-outline"></i>
                                             <strong>Belum ada task</strong>
                                             <span>Task yang diberikan atau diterima akan muncul di sini.</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </section>
+
+                        {{-- ===================== STATUS TASK PER ORANG ===================== --}}
+                        @php
+                            $taskStatusColumns = [
+                                [
+                                    'key' => 'todo',
+                                    'label' => 'To Do',
+                                    'color' => '#94a3b8',
+                                    'pillClass' => 'psl-dash-person-pill-todo',
+                                    'tileClass' => 'psl-dash-person-tile-todo',
+                                ],
+                                [
+                                    'key' => 'inProgress',
+                                    'label' => 'In Progress',
+                                    'color' => '#6366f1',
+                                    'pillClass' => 'psl-dash-person-pill-progress',
+                                    'tileClass' => 'psl-dash-person-tile-progress',
+                                ],
+                                [
+                                    'key' => 'revisi',
+                                    'label' => 'Revisi',
+                                    'color' => '#e11d48',
+                                    'pillClass' => 'psl-dash-person-pill-revision',
+                                    'tileClass' => 'psl-dash-person-tile-revision',
+                                ],
+                                [
+                                    'key' => 'done',
+                                    'label' => 'Done',
+                                    'color' => '#10b981',
+                                    'pillClass' => 'psl-dash-person-pill-done',
+                                    'tileClass' => 'psl-dash-person-tile-done',
+                                ],
+                            ];
+                            $personCount = count($taskStatusPerPersonRows);
+                            $hasPersonControls =
+                                !$isOwnTaskStatusOnly && $personCount > $taskStatusPerPersonVisibleRows;
+                        @endphp
+                        <section class="psl-dash-person-section">
+                            <div class="card psl-dash-card">
+                                <div class="psl-dash-card-body">
+                                    <div class="psl-dash-person-head">
+                                        <div>
+                                            <h2 class="psl-dash-card-title">{{ $taskStatusPerPersonTitle }}</h2>
+                                            <p class="psl-dash-card-caption mb-0">Jumlah task yang diterima, dikelompokkan
+                                                menurut status.</p>
+                                        </div>
+                                        @if ($hasPersonControls)
+                                            <input type="search" id="taskPersonSearchInput"
+                                                class="form-control psl-dash-person-search"
+                                                placeholder="Cari nama atau unit" aria-label="Cari nama atau unit">
+                                        @endif
+                                    </div>
+
+                                    @if ($personCount === 0)
+                                        <div class="psl-dash-empty psl-dash-empty-muted">
+                                            <i class="mdi mdi-account-group-outline"></i>
+                                            <strong>Belum ada data</strong>
+                                            <span>Data muncul setelah ada pengguna di cakupan Anda.</span>
+                                        </div>
+                                    @elseif ($isOwnTaskStatusOnly)
+                                        @php $ownTaskStatus = $taskStatusPerPersonRows[0]; @endphp
+                                        <div class="psl-dash-person-tiles">
+                                            @foreach ($taskStatusColumns as $column)
+                                                @php $statusCount = $ownTaskStatus['counts'][$column['key']]; @endphp
+                                                <div class="psl-dash-person-tile {{ $column['tileClass'] }}">
+                                                    <div class="psl-dash-person-tile-label">
+                                                        <i class="psl-dash-legend-dot"
+                                                            style="background: {{ $column['color'] }}"></i>{{ $column['label'] }}
+                                                    </div>
+                                                    <p
+                                                        class="psl-dash-person-tile-value {{ $statusCount === 0 ? 'psl-dash-person-tile-value-zero' : '' }}">
+                                                        {{ $statusCount }}</p>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        <p class="psl-dash-ranking-detail mt-3 mb-0">Total {{ $ownTaskStatus['total'] }}
+                                            task</p>
+                                    @else
+                                        <div class="psl-dash-person-scroll">
+                                            <table class="psl-dash-person-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="psl-dash-person-name-cell">Nama</th>
+                                                        @foreach ($taskStatusColumns as $column)
+                                                            <th>
+                                                                <i class="psl-dash-legend-dot"
+                                                                    style="background: {{ $column['color'] }}"></i>{{ $column['label'] }}
+                                                            </th>
+                                                        @endforeach
+                                                        <th class="psl-dash-person-total-cell">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($taskStatusPerPersonRows as $personRow)
+                                                        <tr class="psl-dash-person-row"
+                                                            data-search="{{ mb_strtolower($personRow['name'] . ' ' . $personRow['subtitle']) }}"
+                                                            @if ($hasPersonControls && $loop->index >= $taskStatusPerPersonVisibleRows) hidden @endif>
+                                                            <td class="psl-dash-person-name-cell">
+                                                                <div class="psl-dash-person-identity">
+                                                                    <span
+                                                                        class="psl-dash-person-avatar">{{ $personRow['initials'] }}</span>
+                                                                    <div class="psl-dash-person-identity-text">
+                                                                        <p class="psl-dash-person-name">
+                                                                            {{ $personRow['name'] }}
+                                                                            @if ($personRow['isLoggedInUser'])
+                                                                                <span
+                                                                                    class="psl-dash-person-self">(Anda)</span>
+                                                                            @endif
+                                                                        </p>
+                                                                        <p class="psl-dash-person-subtitle">
+                                                                            {{ $personRow['subtitle'] }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            @foreach ($taskStatusColumns as $column)
+                                                                @php $statusCount = $personRow['counts'][$column['key']]; @endphp
+                                                                <td>
+                                                                    @if ($statusCount > 0)
+                                                                        <span
+                                                                            class="psl-dash-person-pill {{ $column['pillClass'] }}">{{ $statusCount }}</span>
+                                                                    @else
+                                                                        <span class="psl-dash-person-zero">-</span>
+                                                                    @endif
+                                                                </td>
+                                                            @endforeach
+                                                            <td class="psl-dash-person-total-cell psl-dash-person-total">
+                                                                {{ $personRow['total'] }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <p id="taskPersonEmptyMessage" class="psl-dash-ranking-detail mt-3 mb-0" hidden>
+                                            Tidak ada yang cocok dengan pencarian.</p>
+
+                                        <div class="psl-dash-person-foot">
+                                            <span id="taskPersonCountText">Menampilkan
+                                                {{ min($personCount, $taskStatusPerPersonVisibleRows) }} dari
+                                                {{ $personCount }} orang</span>
+                                            @if ($hasPersonControls)
+                                                <button type="button" id="taskPersonToggleButton"
+                                                    class="btn btn-link p-0 fw-semibold">Lihat semua</button>
+                                            @endif
                                         </div>
                                     @endif
                                 </div>
@@ -808,6 +1193,59 @@
                         }
                     });
                 }
+            })();
+        </script>
+
+        <script>
+            (function() {
+                const personRows = Array.from(document.querySelectorAll('.psl-dash-person-row'));
+                const searchInput = document.getElementById('taskPersonSearchInput');
+                const toggleButton = document.getElementById('taskPersonToggleButton');
+                const countText = document.getElementById('taskPersonCountText');
+                const emptySearchMessage = document.getElementById('taskPersonEmptyMessage');
+
+                // Tanpa tombol dan pencarian (orangnya sedikit), semua baris sudah tampil.
+                if (personRows.length === 0 || !searchInput || !toggleButton) {
+                    return;
+                }
+
+                const visibleRowLimit = {{ $taskStatusPerPersonVisibleRows }};
+                let isShowingAllRows = false;
+
+                function updateVisibleRows() {
+                    const keyword = searchInput.value.trim().toLowerCase();
+                    const isSearching = keyword !== '';
+                    let matchedCount = 0;
+                    let shownCount = 0;
+
+                    personRows.forEach(function(personRow) {
+                        const isMatched = !isSearching || personRow.dataset.search.includes(keyword);
+                        const canShowMoreRows = isShowingAllRows || isSearching || shownCount < visibleRowLimit;
+                        const shouldShow = isMatched && canShowMoreRows;
+
+                        if (isMatched) {
+                            matchedCount++;
+                        }
+
+                        if (shouldShow) {
+                            shownCount++;
+                        }
+
+                        personRow.hidden = !shouldShow;
+                    });
+
+                    countText.textContent = 'Menampilkan ' + shownCount + ' dari ' + matchedCount + ' orang';
+                    emptySearchMessage.hidden = matchedCount !== 0;
+                    toggleButton.hidden = isSearching;
+                    toggleButton.textContent = isShowingAllRows ? 'Tampilkan lebih sedikit' : 'Lihat semua';
+                }
+
+                searchInput.addEventListener('input', updateVisibleRows);
+
+                toggleButton.addEventListener('click', function() {
+                    isShowingAllRows = !isShowingAllRows;
+                    updateVisibleRows();
+                });
             })();
         </script>
     @endif
